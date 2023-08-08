@@ -1,8 +1,12 @@
 import re
+import os
+from dotenv import load_dotenv
 
-input_file_path = 'F:/LangX-Compiler/varDecleration/input.txt'
+load_dotenv()
 
-output_file_path = 'F:/LangX-Compiler/varDecleration/output.txt' 
+input_file_path = os.getenv('INPUT_FILE_PATH')
+
+output_file_path = os.getenv('OUTPUT_FILE_PATH')
 
 token = []
 

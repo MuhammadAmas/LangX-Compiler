@@ -1,0 +1,56 @@
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+*.env
+
+# Log files
+*.log
+
+# IDE-specific files and directories
+.vscode/
+.idea/
+*.iml
+
+# Dependency directories
+dist/
+build/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Miscellaneous
+*.swp
+.DS_Store
+Thumbs.db
+
+# Output files
+output/
+output.txt
+
+# Config files with sensitive data
+config.ini
+config.yml
+secrets.json
+
+# Local development environment files
+*.env.local
+.env.development.local
+.env.test.local
+.env.production.local

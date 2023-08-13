@@ -117,8 +117,8 @@ def breakToken(word):
     
 
 def classifyToken(tokenlist):
-    keywords=[]
-    operators=[]
-    punctuators=[]
+    keywords={}
+    operators={}
+    punctuators={}
     
 def generateOutput(tokens):

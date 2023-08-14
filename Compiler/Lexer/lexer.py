@@ -124,9 +124,11 @@ def classifyToken(tokenlist):
               "show":"PRINT","take":"INPUT","use":"IMPORT","rename":"RENAME","attempt":"TRY","catch":"CATCH","group":"GROUP",
               "obj":"SELF", "create":"INIT", "base":"SUPER", "true":"BOOL", "false":"BOOL"}
     
-    operators={"=":"ASSIGN","+=":"COMBO_ASSIGN","-=":"COMBO_ASSIGN","++":"INC_DEC","--":"INC_DEC","<":"RELATION",">":"RELATION","==":"RELATION","<=":"RELATION",">=":"RELATION","!=":"RELATION","and":"LOGICAL","or":"LOGICAL","not":"LOGICAL",
+    operators={"=":"ASSIGN","+=":"COMBO_ASSIGN","-=":"COMBO_ASSIGN","++":"INC_DEC","--":"INC_DEC","<":"RELATION",">":"RELATION",
+               "==":"RELATION","<=":"RELATION",">=":"RELATION","!=":"RELATION","and":"LOGICAL","or":"LOGICAL","not":"LOGICAL",
                "+":"ARITHMETIC","-":"ARITHMETIC","*":"ARITHMETIC","/":"ARITHMETIC","%":"ARITHMETIC","**":"POWER","in":"SOMETHING"}
     
-    punctuators={"(":"", ")":"" , "[":"", "]":"" , "{":"" , "}":"" , ":":"" , "//":"", ",":""}
+    punctuators={"(":"O_PARAM", ")":"C_PARAM" , "[":"O_BRACK", "]":"C_BRACK" , "{":"O_BRACE" , "}":"C_BRACE" , ":":"COLON" , 
+                 "//":"SINGLE_COMMENT", ",":"SEPARATOR"}
     
 def generateOutput(tokens):

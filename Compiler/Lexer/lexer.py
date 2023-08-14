@@ -119,7 +119,10 @@ def breakToken(word):
     comboBreak = []
     
 def classifyToken(tokenlist):
-    keywords={}
+    keywords={"num":"DT","dec":"DT","bool":"DT","string":"DT","when":"WHEN","otherwise":"OTHERWISE", "check":"CHECK",
+              "iterate":"LOOP","stop":"CONTROL FLOW","continue":"CONTROL FLOW","define":"FUNCTION","yield":"RETURN",
+              "show":"PRINT","take":"INPUT","use":"IMPORT","rename":"RENAME","attempt":"TRY","catch":"CATCH","group":"GROUP",
+              "obj":"SELF", "create":"INIT", "base":"SUPER", "true":"BOOL", "false":"BOOL",}
     operators={}
     punctuators={}
     

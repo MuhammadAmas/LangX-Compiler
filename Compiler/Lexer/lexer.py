@@ -122,8 +122,11 @@ def classifyToken(tokenlist):
     keywords={"num":"DT","dec":"DT","bool":"DT","string":"DT","when":"WHEN","otherwise":"OTHERWISE", "check":"CHECK",
               "iterate":"LOOP","stop":"CONTROL FLOW","continue":"CONTROL FLOW","define":"FUNCTION","yield":"RETURN",
               "show":"PRINT","take":"INPUT","use":"IMPORT","rename":"RENAME","attempt":"TRY","catch":"CATCH","group":"GROUP",
-              "obj":"SELF", "create":"INIT", "base":"SUPER", "true":"BOOL", "false":"BOOL",}
-    operators={}
-    punctuators={}
+              "obj":"SELF", "create":"INIT", "base":"SUPER", "true":"BOOL", "false":"BOOL"}
+    
+    operators={"=":"ASSIGN","+=":"COMBO_ASSIGN","-=":"COMBO_ASSIGN","++":"INC_DEC","--":"INC_DEC","<":"RELATION",">":"RELATION","==":"RELATION","<=":"RELATION",">=":"RELATION","!=":"RELATION","and":"LOGICAL","or":"LOGICAL","not":"LOGICAL",
+               "+":"ARITHMETIC","-":"ARITHMETIC","*":"ARITHMETIC","/":"ARITHMETIC","%":"ARITHMETIC","**":"POWER","in":"SOMETHING"}
+    
+    punctuators={"(":"", ")":"" , "[":"", "]":"" , "{":"" , "}":"" , ":":"" , "//":"", ",":""}
     
 def generateOutput(tokens):

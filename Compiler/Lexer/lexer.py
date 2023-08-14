@@ -69,7 +69,7 @@ class token():
         return showToken
     
 def intConst(word):
-    pattern = re.compile
+    pattern = "(^[+|-]?[0-9]+$)"
     matchPattern=pattern.match(pattern,word)
     
     if matchPattern:
@@ -78,7 +78,7 @@ def intConst(word):
         return False
     
 def floatConst(word):
-    pattern = re.compile
+    pattern = "(^[+|-]?[0-9]*[.][0-9]+$)"
     matchPattern=pattern.match(pattern,word)
     
     if matchPattern:
@@ -87,7 +87,7 @@ def floatConst(word):
         return False
     
 def stringConst(word):
-    pattern = re.compile
+    pattern = "(\"(.*)\")"
     matchPattern=pattern.match(pattern,word)
     
     if matchPattern:
@@ -96,7 +96,7 @@ def stringConst(word):
         return False
     
 def isIdentifier(word):
-    pattern = re.compile
+    pattern = "([a-zA-Z_][a-zA-Z0-9_]*)"
     matchPattern=pattern.match(pattern,word)
     
     if matchPattern:
@@ -104,18 +104,20 @@ def isIdentifier(word):
     else:
         return False
     
-def generateToken(word):
-    pattern = re.compile
-    matchPattern=pattern.match(pattern,word)
-    
-    if matchPattern:
-        return True
-    else:
-        return False
-    
-def breakToken(word):
-    
+def generateToken(word,line,i):
+    currentToken = token(word,line)
+    #showToken = str(line) +"\t" + word
+    #print(showToken)
+    i=i+1
+    return "",i,currentToken
 
+def breakToken(word):
+    word = ""
+    line = 1
+    tokenlist = []
+    singleBreak = []
+    comboBreak = []
+    
 def classifyToken(tokenlist):
     keywords={}
     operators={}

@@ -115,8 +115,8 @@ def breakToken(word):
     word = ""
     line = 1
     tokenlist = []
-    singleBreak = []
-    comboBreak = []
+    singleBreak = [",",  ";", "(", ")", "{", "}", "[", "]", "-", "+", "*", "/", "%", "=", ">", "<", "@", "!"]
+    comboBreak = ["||", "&&", ">=", "<=", "!=", "++", "--", "+=", "-=", "*=", "/=", "=="]
     
 def classifyToken(tokenlist):
     keywords={"num":"DT","dec":"DT","bool":"DT","string":"DT","when":"WHEN","otherwise":"OTHERWISE", "check":"CHECK",

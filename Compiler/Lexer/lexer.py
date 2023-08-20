@@ -10,56 +10,9 @@ output_file_path = os.getenv('OUTPUT_FILE_PATH')
 
 token = []
 
-# try:
-#     with open(input_file_path, 'r') as file, open(output_file_path, 'w') as output_file:
-#         for line_number, line in enumerate(file, start=1):
-#             line = line.strip()  # Remove leading/trailing whitespace
-#             if not line:
-#                 continue  # Skip empty lines
-            
-#             pattern = r'^(num|dec|text) ([a-zA-Z_][a-zA-Z0-9_]*) = ([-]?[0-9]|[-]?[0-9]+(\.[0-9]+)?|"[^"]*");$'
-            
-#             match = re.match(pattern, line)
-#             if match:
-#                 data_type = match.group(1)
-#                 variable_name = match.group(2)
-#                 value = match.group(3)
-                
-#                 if data_type == 'num' and '.' not in value:
-#                     output_file.write(f"Line {line_number}:\n")
-#                     output_file.write(f"  Data Type: {data_type}\n")
-#                     output_file.write(f"  Variable Name: {variable_name}\n")
-#                     output_file.write(f"  Value: {value}\n\n")
-                
-#                 elif data_type == 'dec' and '.' in value:
-#                     output_file.write(f"Line {line_number}:\n")
-#                     output_file.write(f"  Data Type: {data_type}\n")
-#                     output_file.write(f"  Variable Name: {variable_name}\n")
-#                     output_file.write(f"  Value: {value}\n\n")
-                    
-#                 elif data_type == 'text' and '"' in value:
-#                     output_file.write(f"Line {line_number}:\n")
-#                     output_file.write(f"  Data Type: {data_type}\n")
-#                     output_file.write(f"  Variable Name: {variable_name}\n")
-#                     output_file.write(f"  Value: {value}\n\n")
-#                 else:
-#                     output_file.write(f"Line {line_number}: Invalid syntax\n\n")
-#                     token.append({"Line {line_number}: Invalid syntax"})
-                    
-#                 token.append({'line_number': line_number, 'data_type': data_type, 'variable_name': variable_name , 'value': value })
-                
-#             else:
-#                 output_file.write(f"Line {line_number}: Invalid syntax\n\n")
-#                 token.append({"Line {line_number}: Invalid syntax"})
-
-# except FileNotFoundError:
-#     print(f"Error: File '{input_file_path}' not found.")
-# except IOError:
-#     print(f"Error: Unable to read the file '{input_file_path}'.")
-
-class token():
-    def __init__(self,value,line):
-        self.type ="undefined"
+class token ():
+    def __init__(self, value, line):
+        self.type = "undefined"
         self.value = value
         self.line = line
         
@@ -111,12 +64,42 @@ def generateToken(word,line,i):
     i=i+1
     return "",i,currentToken
 
-def breakToken(word):
+def breakWords(sourceCode):
     word = ""
     line = 1
-    tokenlist = []
-    singleBreak = [",",  ";", "(", ")", "{", "}", "[", "]", "-", "+", "*", "/", "%", "=", ">", "<", "@", "!"]
+    tokenList = []
+    singleBreak = [",",  ";", "(", ")", "{", "}", "[", "]", "-", "+", "*", "/", "%", "=", ">", "<", "@", "!", "."]
     comboBreak = ["||", "&&", ">=", "<=", "!=", "++", "--", "+=", "-=", "*=", "/=", "=="]
+    
+    # TODO: Read the source code
+    i = 0
+    while (i < len(sourceCode)):
+        checker = sourceCode[i]
+        
+        # checking the next line character
+        if (checker == "\n"):
+            if (word != ""):
+                word, i, current_token = generateToken(word, line, i)
+                tokenList.append(current_token)
+            else:
+                i = i + 1
+            line += 1
+            continue
+                
+        # Checking the Space character
+        if (checker == " "):
+            if (word != ""):
+                word, i, current_token = generateToken(word, line, i)
+                tokenList.append(current_token)
+            else:
+                i = i + 1
+            continue
+                
+    # TODO: check of if-else for dot, comment, string
+    
+    
+    
+    
     
 def classifyToken(tokenlist):
     keywords={"num":"DT","dec":"DT","bool":"DT","string":"DT","when":"WHEN","otherwise":"OTHERWISE", "check":"CHECK",
@@ -131,4 +114,15 @@ def classifyToken(tokenlist):
     punctuators={"(":"O_PARAM", ")":"C_PARAM" , "[":"O_BRACK", "]":"C_BRACK" , "{":"O_BRACE" , "}":"C_BRACE" , ":":"COLON" , 
                  "//":"SINGLE_COMMENT", ",":"SEPARATOR"}
     
-def generateOutput(tokens):
+# def generateOutput(tokens):
+
+
+with open(input_file_path, "r") as inputfile:
+    input_text = inputfile.read()
+
+breakWords(input_text)
+# classifiedTokens = classifyToken(generatedTokens)
+# output_text = generateOuput(classifiedTokens)
+
+# with open(output_file_path, "w") as outputfile:
+#     outputfile.write(generateOuput(classifyToken(breakWords(input_text))))

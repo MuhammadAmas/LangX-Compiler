@@ -1,8 +1,8 @@
-from lexer import generateToken
+from lexer import Token, generateToken
 
 
 def breakWords(sourceCode):
-    word = "am"
+    word = ""
     line = 1
     tokenList = []
     singleBreak = [",",  ";", "(", ")", "{", "}", "[", "]",
@@ -15,13 +15,21 @@ def breakWords(sourceCode):
         checker = sourceCode[i]
 
         # ! checking the next line, carriage return, tab, and space character
-        if (checker == "\n" or checker == "\r" or checker == "\t" or checker == " "):
+        if (checker == "\n" or checker == "\r" or checker == "\t"):
             if (word != ""):
                 word, i, current_token = generateToken(word, line, i)
                 tokenList.append(current_token)
             else:
                 i = i + 1
             line += 1
+            continue
+        
+        if (checker == " "):
+            if (word != ""):
+                word, i, current_token = generateToken(word, line, i)
+                tokenList.append(current_token)
+            else:
+                i = i + 1
             continue
 
         # ! checking for dot and generating token based on the type of value
@@ -49,11 +57,8 @@ def breakWords(sourceCode):
                     word, i, current_token = generateToken(word, line, i)
                     tokenList.append(current_token)
 
-            continue        
-        
-
+            continue    
         # ! checking for string with ""
-        # Checking for Starting of a String (with double quote)
         if (sourceCode[i] == "\""):
             if (word != ""):
                 word, i, current_token = generateToken(word, line, i)
@@ -95,47 +100,75 @@ def breakWords(sourceCode):
             continue
 
 
+        # ! Combo Breaking Word Appear
+        if (i + 1 < len(sourceCode)):
+            checking = f"{sourceCode[i]}{sourceCode[i+1]}"
+        if (i + 1 < len(sourceCode) and f"{sourceCode[i]}{sourceCode[i+1]}" in comboBreak):
             if (word != ""):
                 word, i, current_token = generateToken(word, line, i)
-                tokenist.append(current_token)
-                i -= 1
+                tokenList.append(current_token)
+                i = i - 1
 
-            word = checker[i]
+            word = f"{sourceCode[i]}{sourceCode[i+1]}"
+            word, i, current_token = generateToken(word, line, i)
+            tokenList.append(current_token)
             i = i + 1
+            continue
 
-            # String continues till File Ends, Next Double Quote or New Line Character
-            while (i < len(checker)):
-                checking = checker[i]
-                if (i+1 < len(checker)):
-                    if (checker[i] == "\\"):
-                        checking = f"{checker[i]}{checker[i+1]}"
-                        word = word + checking
-                        i += 1
-                        if (i+1 < len(checker)):
-                            i += 1
-                            continue
-                        else:
-                            break
+        # ! Single Character Breaking Word Appear
+        if (sourceCode[i] in singleBreak):
+            if (word != ""):
+                word, i, current_token = generateToken(word, line, i)
+                tokenList.append(current_token)
+                i = i - 1
 
-                if (checker[i] != "\"" and checker[i] != "\n"):
-                    word = word + checker[i]
-                    i = i + 1
-                else:
-                    break
-
-            if (checker[i] == "\n"):
-                line += 1
-
-            # Breaking String if Double Quote Appear
-            if (i < len(checker) and checker[i] == "\""):
-                word = word + checker[i]
-
+            word = sourceCode[i]
             word, i, current_token = generateToken(word, line, i)
             tokenList.append(current_token)
             continue
 
-        i+=1
-    return tokenList
-        # TODO: check of if-else for dot, comment, string
+        # Comment Character Appear
+        if (sourceCode[i] == "?"):
+            if (word != ""):
+                word, i, current_token = generateToken(word, line, i)
+                tokenList.append(current_token)
+            else:
+                i = i + 1
 
-        # int name = "amsas"
+            if (i < len(sourceCode)):
+                checking = sourceCode[i]
+                # Multi Line Comment Characters Appear
+                if (sourceCode[i] == "?"):
+                    i = i + 1
+                    # Itteration till the Ending Comment character Appear or File Ends
+                    while (i < len(sourceCode)):
+                        checking = sourceCode[i]
+                        if (sourceCode[i] == "\n"):
+                            line += 1
+                        if (sourceCode[i] == "?" and sourceCode[i+1] == "?"):
+                            i = i + 1
+                            break
+                        i = i + 1
+                    i = i + 1
+                    continue
+
+                # Single Line Comment Character
+                else:
+                    # Itteration till the line ends or File Ends
+                    while (i < len(sourceCode)):
+                        checking = sourceCode[i]
+                        if (sourceCode[i] == "\n"):
+                            line += 1
+                            break
+                        i = i + 1
+                    i = i + 1
+                    continue
+
+        # Character added to word if no breaking occurs
+        word = word + sourceCode[i]
+        i = i + 1
+
+
+    return tokenList
+
+

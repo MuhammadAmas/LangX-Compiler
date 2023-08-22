@@ -1,5 +1,5 @@
-from Token import Token
 import re
+from Token import Token
 
 def intConst(word):
     pattern = "(^[+|-]?[0-9]+$)"

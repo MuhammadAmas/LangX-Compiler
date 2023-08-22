@@ -1,8 +1,7 @@
 def readSourceCode(input_file_path):
     try:
         with open(input_file_path, 'r') as sourceCode:
-            content = sourceCode.read()
-            return content
+            return sourceCode.read()
     except FileNotFoundError:
         print(f"Error: File '{input_file_path}' not found.")
         return None

@@ -6,3 +6,5 @@ num x = 42;
 a??test
 egw 
 gsg??
+array abc = ["a", "b", "c", 9, 2, 3,'d', 'e', 'f', 9.0, 8.34, 8.34abc.34]
+num num1= 2+3*9;

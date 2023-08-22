@@ -1,6 +1,5 @@
 from lexer import Token, generateToken
 
-
 def breakWords(sourceCode):
     word = ""
     line = 1

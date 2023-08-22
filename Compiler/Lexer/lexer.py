@@ -20,7 +20,15 @@ def floatConst(word):
     else:
         return False
 
+def charConst(word):
+    pattern = "(\'[\\sA-Za-z0-9-!@$#%^&*()+=;:<>,.?/{}[\]|]\')"
+    matchPattern = re.match(pattern, word)
 
+    if matchPattern:
+        return True
+    else:
+        return False
+    
 def stringConst(word):
     pattern = "(\"(.*)\")"
     matchPattern = re.match(pattern, word)
@@ -47,5 +55,3 @@ def generateToken(word, line, i):
     # print(showToken)
     i = i+1
     return "", i, currentToken
-
-

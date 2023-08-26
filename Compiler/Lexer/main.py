@@ -15,8 +15,6 @@ sourceCode = readSourceCode(input_file_path)
 
 breakedWords = breakWords(sourceCode)
 
-print(breakedWords[1].value, breakedWords[1].type, breakedWords[1].line)
-
 classifiedToken = classifyToken(breakedWords)
 
 with open(output_file_path, "w") as outputfile:

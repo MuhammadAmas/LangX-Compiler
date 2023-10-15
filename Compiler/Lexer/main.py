@@ -5,6 +5,7 @@ from readSourceCode import readSourceCode
 from wordBreaker import breakWords
 from classifyToken import classifyToken
 from generateOutput import generateOutput
+from syntaxAnalyzer import syntaxAnalyzer
 
 load_dotenv()
 
@@ -15,9 +16,11 @@ sourceCode = readSourceCode(input_file_path)
 
 breakedWords = breakWords(sourceCode)
 
-print(breakedWords[1].value, breakedWords[1].type, breakedWords[1].line)
-
 classifiedToken = classifyToken(breakedWords)
 
-with open(output_file_path, "w") as outputfile:
-    outputfile.write(generateOutput(classifiedToken))
+# print(classifiedToken[1])
+
+print(syntaxAnalyzer(classifiedToken))
+
+# with open(output_file_path, "w") as outputfile:
+    # outputfile.write(generateOutput(classifiedToken))

@@ -171,5 +171,8 @@ def breakWords(sourceCode):
     if (word != ""):
         word, i, current_token = generateToken(word, line, i)
         tokenList.append(current_token)
+        
+    # End Marker token... to ensure complete tree and complete input parsing
+    tokenList.append(Token("~", line))
 
     return tokenList

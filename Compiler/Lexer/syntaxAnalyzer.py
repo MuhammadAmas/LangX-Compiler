@@ -16,6 +16,8 @@ def syntaxAnalyzer(tokens):
               "\n\tFile:\t\'.\\input.txt\' [@ " + str(tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt) + "\n\n\n"
         print("\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type +
               "\n\tFile:\t\'.\\input.txt\' [@ " + str(tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt))
+    if result:
+        print("Source code is syntactically correct :)")
     return synError, result
 
 
@@ -55,8 +57,6 @@ try:
             print('decleration')
             return True
         elif when_otherwise():
-            return True
-        elif if_else():
             return True
         elif assign_st():
             return True
@@ -158,7 +158,7 @@ try:
         return True
 
     # ? **************************** if else ********************************
-    def if_else():
+    def when_otherwise():
         global i, tokenList
         if tokenList[i].type == "WHEN":
             i += 1
@@ -173,7 +173,7 @@ try:
                                 return True
         return syntaxError()
 
-    def if_else_tail():
+    def when_otherwise_tail():
         global i, tokenList
         if tokenList[i].type == "CHECK":
             i += 1
@@ -184,14 +184,14 @@ try:
                     if tokenList[i].type == "O_BRACE":
                         i += 1
                         if body():
-                            if if_else_tail():
+                            if when_otherwise_tail():
                                 return True
         elif tokenList[i].type == "OTHERWISE":
             i += 1
             if tokenList[i].type == "O_BRACE":
                 i += 1
                 if body():
-                    if if_else_tail():
+                    if when_otherwise_tail():
                         return True
         return True
 
@@ -280,6 +280,7 @@ try:
 
     # ? **************************** decleration ********************************
     def dec():
+        global i, tokenList
         if tokenList[i].type == "DT":
             i += 1
             if tokenList[i].type == "ID":
@@ -347,10 +348,12 @@ try:
 
     # ? **************************** assign st ********************************
     def assign_st():
+        global i, tokenList
         if tokenList[i].type == "ID":
             i += 1
             if A2():
-                if assignop():
+                 if tokenList[i].type == "ASSIGN":
+                    i += 1
                     if exp():
                         return True
         return syntaxError()

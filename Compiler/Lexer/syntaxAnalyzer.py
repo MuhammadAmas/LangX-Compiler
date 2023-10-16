@@ -62,13 +62,11 @@ try:
             return True
         elif inc_dec_st():
             return True
-        elif return_st():
+        elif yield_st():
             return True
         elif func_call():
             return True
         elif try_catch():
-            return True
-        elif obj_dec():
             return True
         elif dict_():
             return True
@@ -197,6 +195,7 @@ try:
 
     # ? **************************** array ********************************
     def array():
+        global i, tokenList
         if tokenList[i].type == "DT":
             i += 1
             if tokenList[i].type == "ID":
@@ -236,6 +235,7 @@ try:
 
     # ? **************************** dict ********************************
     def dict_():
+        global i, tokenList
         if tokenList[i].type == "DICT":
             i += 1
             if tokenList[i].type == "O_BRACE":
@@ -299,6 +299,7 @@ try:
         return True
 
     def init_1():
+        global i, tokenList
         if tokenList[i].type == "ID":
             i += 1
             if init_2():
@@ -345,6 +346,13 @@ try:
                 if list_():
                     return True
         return True
+
+    def const():
+        global i, tokenList
+        if tokenList[i].type in ["STRING", "CHAR", "FLOAT", "INT"]:
+            i += 1
+            return True
+        return syntaxError()
 
     # ? **************************** assign st ********************************
     def assign_st():
@@ -458,6 +466,11 @@ try:
                                 i += 1
                                 return True
         return True
+
+    # ? **************************** expression ********************************
+    def exp():
+       print("exp")
+       return True
 
 except:
     print("ERROR: Syntax Analyzer: structure()")

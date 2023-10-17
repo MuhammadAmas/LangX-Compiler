@@ -82,10 +82,10 @@ try:
                 i += 1
                 if tokenList[i].type == "ID":
                     i += 1
-                    if tokenList[i].type == "O_PARAN":
+                    if tokenList[i].type == "O_PARAM":
                         i += 1
                         if args():
-                            if tokenList[i].type == "C_PARAN":
+                            if tokenList[i].type == "C_PARAM":
                                 i += 1
                                 if tokenList[i].type == "O_BRACE":
                                     i += 1
@@ -134,10 +134,10 @@ try:
         global i, tokenList
         if tokenList[i].type == "ID":
             i += 1
-            if tokenList[i].type == "O_PARAN":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 if param():
-                    if tokenList[i].type == "C_PARAN":
+                    if tokenList[i].type == "C_PARAM":
                         i += 1
                         return True
         return syntaxError()
@@ -149,7 +149,7 @@ try:
 
     def param2():
         global i, tokenList
-        if tokenList[i].type == "COMMA":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             if exp():
                 return param2()
@@ -160,9 +160,9 @@ try:
         global i, tokenList
         if tokenList[i].type == "WHEN":
             i += 1
-            if tokenList[i].type == "O_PARAN":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
-                if exp() and tokenList[i].type == "C_PARAN":
+                if exp() and tokenList[i].type == "C_PARAM":
                     i += 1
                     if tokenList[i].type == "O_BRACE":
                         i += 1
@@ -175,9 +175,9 @@ try:
         global i, tokenList
         if tokenList[i].type == "CHECK":
             i += 1
-            if tokenList[i].type == "O_PARAN":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
-                if exp() and tokenList[i].type == "C_PARAN":
+                if exp() and tokenList[i].type == "C_PARAM":
                     i += 1
                     if tokenList[i].type == "O_BRACE":
                         i += 1
@@ -254,7 +254,7 @@ try:
 
     def key_value_tail():
         global i, tokenList
-        if tokenList[i].type == "COMMA":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             if key_value_list():
                 return True
@@ -317,7 +317,7 @@ try:
 
     def init_2_tail():
         global i, tokenList
-        if tokenList[i].type == "COMMA":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
@@ -326,10 +326,10 @@ try:
 
     def list_():
         global i, tokenList
-        if tokenList[i].type == "SEMICOLON":
+        if tokenList[i].type == "TERMINATOR":
             i += 1
             if list_1():
-                if tokenList[i].type == "COMMA":
+                if tokenList[i].type == "SEPARATOR":
                     i += 1
                     if tokenList[i].type == "ID":
                         i += 1
@@ -360,18 +360,37 @@ try:
         if tokenList[i].type == "ID":
             i += 1
             if A2():
-                 if tokenList[i].type == "ASSIGN":
+                if tokenList[i].type == "ASSIGN":
                     i += 1
                     if exp():
                         return True
         return syntaxError()
 
     def A2():
-        if A2_tail():
-            return True
+        global i, tokenList
+        if tokenList[i].type == "DOT ":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                if A2():
+                    return True
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            if exp():
+                if tokenList[i].type == "C_BRACK":
+                    i += 1
+                    if A2():
+                        return True
+        elif tokenList[i].type == "O_PARAM":
+            i += 1
+            if PL():
+                if tokenList[i].type == "C_PARAM":
+                    i += 1
+                    if F2():
+                        return True
         return True
 
-    def A2_tail():
+    def F2():
         global i, tokenList
         if tokenList[i].type == "DOT":
             i += 1
@@ -386,29 +405,14 @@ try:
                     i += 1
                     if A2():
                         return True
-        elif tokenList[i].type == "O_PARAN":
-            i += 1
-            if PL():
-                if tokenList[i].type == "C_PARAN":
-                    i += 1
-                    if F2():
-                        return True
         return True
 
-    def F():
-        global i, tokenList
-        if tokenList[i].type == "DOT":
-            i += 1
-            if A2():
+    def PL():
+        if exp():
+            if param2():
                 return True
-        elif tokenList[i].type == "O_BRACK":
-            i += 1
-            if exp():
-                if tokenList[i].type == "C_BRACK":
-                    i += 1
-                    if A2():
-                        return True
-        return True
+        return False
+   
     
     # ? **************************** increment decrement ********************************
     def inc_dec_st():
@@ -433,7 +437,7 @@ try:
     # ? **************************** try catch ********************************
     def try_catch():
         global i, tokenList
-        if tokenList[i].type == "ATTEMPT":
+        if tokenList[i].type == "TRY":
             i += 1
             if tokenList[i].type == "O_BRACE":
                 i += 1
@@ -455,9 +459,9 @@ try:
         global i, tokenList
         if tokenList[i].type == "CATCH":
             i += 1
-            if tokenList[i].type == "O_PARAN":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
-                if tokenList[i].type == "ID" and tokenList[i + 1].type == "C_PARAN":
+                if tokenList[i].type == "ID" and tokenList[i + 1].type == "C_PARAM":
                     i += 2
                     if tokenList[i].type == "O_BRACE":
                         i += 1
@@ -469,8 +473,114 @@ try:
 
     # ? **************************** expression ********************************
     def exp():
-       print("exp")
-       return True
+          global i, tokenList
+          if a():
+            if exp_prime():    
+                return True 
+          return False
+    
+
+    def exp_prime():
+        global i, tokenList
+        if tokenList[i].type == "OR":
+            if a() and exp_prime():
+                return True
+            else:
+                return False
+
+        return True
+
+    def a():
+        global i, tokenList
+        if r() and a_prime():
+            return True
+        return False
+        
+    def a_prime():
+         global i, tokenList
+         if tokenList[i].type == "AND":
+             if r() and a_prime():
+                 return True
+             return False
+         return True
+    
+    def r():
+        global i, tokenList
+        if e() and r_prime():
+            return True
+        return False
+    
+    def r_prime():
+        global i, tokenList
+        if tokenList[i].type == "RELATION":
+            if e() and r_prime():
+                return True
+            else:
+                return False
+        return True
+
+    def e():
+        global i, tokenList
+        if t() and e_prime():
+            return True
+        return False 
+    
+    def e_prime():
+        global i, tokenList
+        if tokenList[i].type == "ADD_SUB":
+            if t() and e_prime():
+                return True
+            else:
+                return False
+        return True
+    
+    def t():
+        global i, tokenList
+        if q() and t_prime():
+            return True
+        return False
+
+    def t_prime():
+        global i, tokenList
+        if tokenList[i].type == "M_D_M":
+            if q() and t_prime():
+                return True
+            else:
+                return False
+        return True
+
+
+    def q():
+        global i, tokenList
+        if F() and q_prime():
+            return True
+        return False
+    
+    def q_prime():
+        global i, tokenList
+        if tokenList[i].type == "NOT":
+            if F() and q_prime():
+                return True
+            else:
+                return False
+        return True
+    
+
+    def F():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            if F_prime():
+                return True
+        return False
+
+
+    def F_prime():
+        global i, tokenList
+        if func_call() or inc_dec_st() or exp() or tokenList[i].type == "UNARY" or const():
+            return True
+        return True
+
+
 
 except:
     print("ERROR: Syntax Analyzer: structure()")

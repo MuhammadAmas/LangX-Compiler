@@ -453,11 +453,23 @@ try:
             dec()
         elif tokenList[i].type == "WHEN":
             when_otherwise()
-        elif tokenList[i].type == "ITERATE":
+        elif tokenList[i].type == "LOOP":
             for_loop()
         elif tokenList[i].type == "ID":
             assign_st()
-
+        elif tokenList[i].type in ["INC_DEC", "ID"]:
+            inc_dec_st()
+        elif tokenList[i].type == "YIELD":
+            yield_exp()
+        elif tokenList[i].type == "ID":
+            func_call()
+        elif tokenList[i].type == "ATTEMPT":
+            try_catch()
+        elif tokenList[i].type == "DICT":
+            dict_()
+        elif tokenList[i].type == "DT":
+            array()
+            
     # Array
     def array():
         if tokenList[i].type == "DT":

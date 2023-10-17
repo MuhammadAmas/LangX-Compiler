@@ -71,6 +71,7 @@ try:
                         return True
         return False
 
+    # ? ************************* Inheritance *************************
     def inheritance():
         global i, tokenList
         if tokenList[i].type == "extends":
@@ -154,6 +155,8 @@ try:
                 params2()
         else:
             pass  # Epsilon case
+        
+    # ? ************************* Interfaces ************************* 
 
     def interface():
         global i, tokenList
@@ -204,7 +207,7 @@ try:
         else:
             pass  # Epsilon case
         
-# ? Decleration
+    # ? ************************* Decleration ************************* 
     def dec():
         global i, tokenList
         if tokenList[i].type == "DT":
@@ -268,7 +271,7 @@ try:
         else:
             return
 
-
+    # ? ************************* iterate ************************* 
     # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
 
     def for_loop():
@@ -355,6 +358,7 @@ try:
         else:
             pass  # Epsilon case
 
+    # ? ************************* Assignment *************************
     # <assign_st> -> ID <A2> <assignop> <exp>
     def assign_st():
         global i, tokenList
@@ -483,7 +487,7 @@ try:
         elif tokenList[i].type == "DICT":
             dict_()
         
-            
+    # ? ************************* Array *************************        
     # Array
     def array():
         if tokenList[i].type == "ARRAY":
@@ -539,7 +543,7 @@ try:
             syntaxError(
                 "Syntax Error: Missing integer constant for array size")
 
-    # Dict
+    # ? ************************* Dict ************************* 
 
     def dict_():
         if tokenList[i].type == "DICT":
@@ -586,7 +590,7 @@ try:
     def value():
         exp()
 
-    # When Otherwise Check
+    # ? ************************* When Otherwise Check ************************* 
 
     def when_otherwise():
         if tokenList[i].type == "WHEN":
@@ -642,7 +646,7 @@ try:
         else:
             pass  # Epsilon case
 
-    # Function Calling
+    # ? ************************* Function Call *************************
     def func_call():
         if tokenList[i].type == "ID":
             i += 1
@@ -825,8 +829,7 @@ try:
                 syntaxError(
                     "Syntax Error: Missing increment/decrement operator")
 
-    # Attempt Catch
-
+    # ? ************************* Try Catch *************************  
     def try_catch():
         if tokenList[i].type == "ATTEMPT":
             i += 1
@@ -890,6 +893,7 @@ try:
         else:
             pass  # Epsilon case
 
+    # ? ************************* Expression *************************
     # <exp>-> <a> <exp'>
     def exp():
         a()

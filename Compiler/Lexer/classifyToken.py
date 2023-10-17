@@ -4,7 +4,7 @@ def classifyToken(tokenList):
     keywords = {"num": "DT", "dec": "DT", "bool": "DT", "string": "DT", "array":"ARRAY", "dict":"DICT", "when": "WHEN", "otherwise": "OTHERWISE", "check": "CHECK",
                 "iterate": "LOOP", "stop": "CONTROL FLOW", "continue": "CONTROL FLOW", "define": "DEFINE", "yield": "YIELD",
                 "show": "PRINT", "take": "INPUT", "attempt": "ATTEMPT", "catch": "CATCH", "group": "GROUP",
-            "obj": "SELF", "create": "INIT", "base": "SUPER", "true": "BOOL", "false": "BOOL", "~": "EOF"}
+            "obj": "SELF", "create": "INIT", "base": "SUPER", "true": "BOOL", "false": "BOOL", "~": "EOF", "array": "ARRAY"}
 
     operators = {"=": "ASSIGN", "+=": "COMBO_ASSIGN", "-=": "COMBO_ASSIGN", "++": "INC_DEC", "--": "INC_DEC", "<": "RELATION", ">": "RELATION",
                  "==": "RELATION", "<=": "RELATION", ">=": "RELATION", "!=": "RELATION", "and": "AND", "or": "OR", "not": "NOT",

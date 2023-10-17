@@ -22,8 +22,9 @@ def syntaxAnalyzer(tokens):
     return synError, result
 
 
-def syntaxError():
+def syntaxError(message):
     global i, tokenList, errorAt
+    print('Error message :>>', message)
     if (i > errorAt):
         errorAt = i
     return False
@@ -32,15 +33,16 @@ def syntaxError():
 try:
     def structure():
         global i, tokenList
-        if tokenList[i].type == "mst":
-            i += 1
+        if tokenList[i].type == 'EOF':
+            return True
+        elif MST():
             structure()
         elif class_def():
             structure()
         elif func_def():
             structure()
         else:
-            raise Exception("Syntax Error: Invalid start rule")
+            syntaxError("Syntax Error: Invalid start rule")
 
     def class_def():
         global i, tokenList
@@ -131,6 +133,7 @@ try:
                         MST()
                         if tokenList[i].type == "C_BRACE":
                             i += 1
+                            return True
         else:
             pass  # Epsilon case
 
@@ -197,9 +200,11 @@ try:
                     params()
                     if tokenList[i].type == "C_PARAM":
                         i += 1
+                        return True
         else:
             pass  # Epsilon case
-
+        
+# ? Decleration
     def dec():
         global i, tokenList
         if tokenList[i].type == "DT":
@@ -209,58 +214,60 @@ try:
                 init()
                 list()
         else:
-            raise Exception("Syntax Error")
+            syntaxError("Syntax Error")
 
-        def init():
-            global i, tokenList
-            if tokenList[i].type == "ASSIGN":
-                i += 1
-                init_1()
-            elif tokenList[i].type == "TERMINATOR":
-                return
-            else:
-                raise Exception("Syntax Error")
+    def init():
+        global i, tokenList
+        if tokenList[i].type == "ASSIGN":
+            i += 1
+            init_1()
+        elif tokenList[i].type == "TERMINATOR":
+            return True
+        else:
+            syntaxError("Syntax Error")
 
-        def init_1():
-            global i, tokenList
+    def init_1():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            init_2()
+        elif tokenList[i].type in ["STR", "CHAR", "FLT", "INT"]:
+            i += 1
+            return True
+        else:
+            exp()
+
+    def init_2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
             if tokenList[i].type == "ID":
                 i += 1
                 init_2()
-            elif tokenList[i].type in ["STR", "CHAR", "FLT", "INT"]:
-                i += 1
-            else:
-                exp()
 
-        def init_2():
-            global i, tokenList
-            if tokenList[i].type == "SEPARATOR":
-                i += 1
-                if tokenList[i].type == "ID":
-                    i += 1
-                    init_2()
-
-        def list():
-            global i, tokenList
-            if tokenList[i].type == "TERMINATOR":
-                i += 1
-                list_1()
-            elif tokenList[i].type == "SEPARATOR":
-                i += 1
-                if tokenList[i].type == "ID":
-                    i += 1
-                    init()
-                    list()
-            else:
-                raise Exception("Syntax Error")
-
-        def list_1():
-            global i, tokenList
+    def list_():
+        global i, tokenList
+        if tokenList[i].type == "TERMINATOR":
+            i += 1
+            list_1()
+        elif tokenList[i].type == "SEPARATOR":
+            i += 1
             if tokenList[i].type == "ID":
                 i += 1
                 init()
                 list()
-            else:
-                return
+        else:
+            syntaxError("Syntax Error")
+
+    def list_1():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            init()
+            list()
+        else:
+            return
+
 
     # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
 
@@ -270,7 +277,7 @@ try:
             i += 1
             if tokenList[i].type == "O_PARAM":
                 i += 1
-                init()
+                for_loop_init()
                 if tokenList[i].type == "TERMINATOR":
                     i += 1
                     cond()
@@ -284,26 +291,27 @@ try:
                                 body()
                                 if tokenList[i].type == "C_BRACE":
                                     i += 1
+                                    return True
                                 else:
-                                    raise Exception(
+                                    syntaxError(
                                         "Syntax Error: Missing '}'")
                             else:
-                                raise Exception("Syntax Error: Missing '{'")
+                                syntaxError("Syntax Error: Missing '{'")
                         else:
-                            raise Exception("Syntax Error: Missing ')'")
+                            syntaxError("Syntax Error: Missing ')'")
                     else:
-                        raise Exception("Syntax Error: Missing ';'")
+                        syntaxError("Syntax Error: Missing ';'")
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing ';' after condition")
             else:
-                raise Exception("Syntax Error: Missing '('")
+                syntaxError("Syntax Error: Missing '('")
         else:
-            raise Exception("Syntax Error: Missing 'ITERATE'")
+            syntaxError("Syntax Error: Missing 'ITERATE'")
 
     # <init> → <dec> | <assign_st> | E
 
-    def init():
+    def for_loop_init():
         global i, tokenList
         if tokenList[i].type in ["DT", "ID"]:
             dec()
@@ -332,8 +340,9 @@ try:
         global i, tokenList
         if tokenList[i].type in ["ID", "INT", "FLT", "STR"]:
             i += 1
+            return True
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Expected ID or constant in comparison")
 
     def update():
@@ -355,14 +364,15 @@ try:
             assignop()
             exp()
         else:
-            raise Exception("Syntax Error: Missing ID in assignment statement")
+            syntaxError("Syntax Error: Missing ID in assignment statement")
 
     def assignop():
         global i, tokenList
         if tokenList[i].type in ["ASSIGN","COMBO_ASSIGN"]:
             i += 1
+            return True
         else:
-            raise Exception("Syntax Error: Invalid assignment operator")
+            syntaxError("Syntax Error: Invalid assignment operator")
     
     # <A2> -> <A2_tail>
 
@@ -432,6 +442,7 @@ try:
         global i, tokenList
         if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
             i += 1
+            return True
         else:
             pass  # Epsilon case
 
@@ -443,6 +454,8 @@ try:
     # <MST> → <SST><MST>
 
     def MST():
+        if tokenList[i].type == 'EOF':
+            return False
         SST()
         MST()
 
@@ -451,28 +464,29 @@ try:
     def SST():
         if tokenList[i].type == "DT":
             dec()
+        elif tokenList[i].type == "ARRAY":
+            array()       
+        elif tokenList[i].type == "ID":
+            assign_st()
+        elif tokenList[i].type == "ID":
+            func_call()
+        elif tokenList[i].type in ["INC_DEC", "ID"]:
+            inc_dec_st()
         elif tokenList[i].type == "WHEN":
             when_otherwise()
         elif tokenList[i].type == "LOOP":
             for_loop()
-        elif tokenList[i].type == "ID":
-            assign_st()
-        elif tokenList[i].type in ["INC_DEC", "ID"]:
-            inc_dec_st()
         elif tokenList[i].type == "YIELD":
-            yield_exp()
-        elif tokenList[i].type == "ID":
-            func_call()
+            yield_exp()        
         elif tokenList[i].type == "ATTEMPT":
             try_catch()
         elif tokenList[i].type == "DICT":
             dict_()
-        elif tokenList[i].type == "DT":
-            array()
+        
             
     # Array
     def array():
-        if tokenList[i].type == "DT":
+        if tokenList[i].type == "ARRAY":
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
@@ -481,13 +495,13 @@ try:
                     i += 1
                     array_init()
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing '=' in array declaration")
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing ID in array declaration")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing data type in array declaration")
 
     def dim():
@@ -508,19 +522,21 @@ try:
             exp()
             if tokenList[i].type == "C_BRACK":
                 i += 1
+                return True
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing ']' in array initialization")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing '[' in array initialization")
 
     def size():
         global i, tokenList
         if tokenList[i].type == "INT":
             i += 1
+            return True
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing integer constant for array size")
 
     # Dict
@@ -533,14 +549,15 @@ try:
                 key_value_list()
                 if tokenList[i].type == "C_BRACE":
                     i += 1
+                    return True
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing '}' in dictionary declaration")
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing '{' in dictionary declaration")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing 'DICT' in dictionary declaration")
 
     def key_value_list():
@@ -561,7 +578,7 @@ try:
             i += 1
             value()
         else:
-            raise Exception("Syntax Error: Missing ':' in key-value pair")
+            syntaxError("Syntax Error: Missing ':' in key-value pair")
 
     def key():
         exp()
@@ -584,16 +601,16 @@ try:
                         body()
                         if_else_tail()
                     else:
-                        raise Exception(
+                        syntaxError(
                             "Syntax Error: Missing ':' after condition in 'when' statement")
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing ')' after condition in 'when' statement")
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing '(' in 'when' statement")
         else:
-            raise Exception("Syntax Error: Missing 'WHEN' in 'when' statement")
+            syntaxError("Syntax Error: Missing 'WHEN' in 'when' statement")
 
     def if_else_tail():
         global i, tokenList
@@ -609,10 +626,10 @@ try:
                         body()
                         if_else_tail()
                     else:
-                        raise Exception(
+                        syntaxError(
                             "Syntax Error: Missing ':' after condition in 'check' statement")
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing ')' after condition in 'check' statement")
         elif tokenList[i].type == "OTHERWISE":
             i += 1
@@ -621,7 +638,7 @@ try:
                 body()
                 if_else_tail()
             else:
-                raise Exception("Syntax Error: Missing ':' after 'otherwise'")
+                syntaxError("Syntax Error: Missing ':' after 'otherwise'")
         else:
             pass  # Epsilon case
 
@@ -634,13 +651,14 @@ try:
                 param()
                 if tokenList[i].type == "C_PARAM":
                     i += 1
+                    return True
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing ')' in function call")
             else:
-                raise Exception("Syntax Error: Missing '(' in function call")
+                syntaxError("Syntax Error: Missing '(' in function call")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing function name in function call")
 
     def param():
@@ -675,26 +693,28 @@ try:
                             body()
                             if tokenList[i].type == "C_BRACE":
                                 i += 1
+                                return True
                             else:
-                                raise Exception("Syntax Error: Missing '}' in function body")
+                                syntaxError("Syntax Error: Missing '}' in function body")
                         else:
-                            raise Exception("Syntax Error: Missing '{' in function body")
+                            syntaxError("Syntax Error: Missing '{' in function body")
                     else:
-                        raise Exception("Syntax Error: Missing ')' in function definition")
+                        syntaxError("Syntax Error: Missing ')' in function definition")
                 else:
-                    raise Exception("Syntax Error: Missing '(' in function definition")
+                    syntaxError("Syntax Error: Missing '(' in function definition")
             else:
-                raise Exception("Syntax Error: Missing function name in function definition")
+                syntaxError("Syntax Error: Missing function name in function definition")
         else:
-            raise Exception("Syntax Error: Missing 'DEFINE' keyword in function definition")
+            syntaxError("Syntax Error: Missing 'DEFINE' keyword in function definition")
 
 
     def DT_func():
         global i, tokenList
         if tokenList[i].type in ["VOID", "INT"]:
             i += 1
+            return True
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing return type in function definition")
 
     def args():
@@ -704,7 +724,7 @@ try:
                 i += 1
                 n_args()
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing data type in function arguments")
 
     def n_args():
@@ -717,7 +737,7 @@ try:
                     i += 1
                     n_args()
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing data type in function arguments")
         else:
             pass  # Epsilon case
@@ -732,10 +752,10 @@ try:
                 i += 1
                 exp()
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing '=' in assignment statement")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing variable name in assignment statement")
 
     def A2():
@@ -800,8 +820,9 @@ try:
             exp()
             if tokenList[i].type == "INC_DEC":
                 i += 1
+                return True
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing increment/decrement operator")
 
     # Attempt Catch
@@ -822,22 +843,23 @@ try:
                             body()
                             if tokenList[i].type == "C_BRACE":
                                 i += 1
+                                return True
                             else:
-                                raise Exception(
+                                syntaxError(
                                     "Syntax Error: Missing '}' in 'finally' block")
                         else:
-                            raise Exception(
+                            syntaxError(
                                 "Syntax Error: Missing '{' in 'finally' block")
                     else:
-                        raise Exception(
+                        syntaxError(
                             "Syntax Error: Missing 'FINALLY' block in 'try-catch' statement")
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing '}' in 'attempt' block")
             else:
-                raise Exception("Syntax Error: Missing '{' in 'attempt' block")
+                syntaxError("Syntax Error: Missing '{' in 'attempt' block")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing 'ATTEMPT' keyword in 'try-catch' statement")
 
     def catch_block():
@@ -853,17 +875,18 @@ try:
                         body()
                         if tokenList[i].type == "C_BRACE":
                             i += 1
+                            return True
                         else:
-                            raise Exception(
+                            syntaxError(
                                 "Syntax Error: Missing '}' in 'catch' block")
                     else:
-                        raise Exception(
+                        syntaxError(
                             "Syntax Error: Missing '{' in 'catch' block")
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing error variable in 'catch' block")
             else:
-                raise Exception("Syntax Error: Missing '(' in 'catch' block")
+                syntaxError("Syntax Error: Missing '(' in 'catch' block")
         else:
             pass  # Epsilon case
 
@@ -964,7 +987,7 @@ try:
             i += 1
             F_prime()
         else:
-            raise Exception("Syntax Error: Expected ID")
+            syntaxError("Syntax Error: Expected ID")
 
     # <F'>  -> <func_call> | <inc_dec_st> | <exp> | !<F> | <const> | ϵ
     def F_prime():
@@ -991,13 +1014,14 @@ try:
                 param()
                 if tokenList[i].type == "C_PARAM":
                     i += 1
+                    return True
                 else:
-                    raise Exception(
+                    syntaxError(
                         "Syntax Error: Missing ')' in function call")
             else:
-                raise Exception("Syntax Error: Missing '(' in function call")
+                syntaxError("Syntax Error: Missing '(' in function call")
         else:
-            raise Exception(
+            syntaxError(
                 "Syntax Error: Missing function name in function call")
 
     def param():
@@ -1023,8 +1047,9 @@ try:
             exp()
             if tokenList[i].type == "INC_DEC":
                 i += 1
+                return True
             else:
-                raise Exception(
+                syntaxError(
                     "Syntax Error: Missing increment/decrement operator")
 
 except LookupError:

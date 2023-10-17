@@ -266,7 +266,7 @@ try:
 
     def for_loop():
         global i, tokenList
-        if tokenList[i].type == "ITERATE":
+        if tokenList[i].type == "LOOP":
             i += 1
             if tokenList[i].type == "O_PARAM":
                 i += 1

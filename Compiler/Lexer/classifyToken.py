@@ -2,13 +2,13 @@ from lexer import *
 
 def classifyToken(tokenList):
     keywords = {"num": "DT", "dec": "DT", "bool": "DT", "string": "DT", "array":"ARRAY", "dict":"DICT", "when": "WHEN", "otherwise": "OTHERWISE", "check": "CHECK",
-                "iterate": "LOOP", "stop": "CONTROL FLOW", "continue": "CONTROL FLOW", "define": "FUNCTION", "yield": "RETURN",
-                "show": "PRINT", "take": "INPUT", "use": "IMPORT", "rename": "RENAME", "attempt": "ATTEMPT", "catch": "CATCH", "group": "GROUP",
+                "iterate": "LOOP", "stop": "CONTROL FLOW", "continue": "CONTROL FLOW", "define": "DEFINE", "yield": "YIELD",
+                "show": "PRINT", "take": "INPUT", "attempt": "ATTEMPT", "catch": "CATCH", "group": "GROUP",
             "obj": "SELF", "create": "INIT", "base": "SUPER", "true": "BOOL", "false": "BOOL", "~": "EOF"}
 
     operators = {"=": "ASSIGN", "+=": "COMBO_ASSIGN", "-=": "COMBO_ASSIGN", "++": "INC_DEC", "--": "INC_DEC", "<": "RELATION", ">": "RELATION",
                  "==": "RELATION", "<=": "RELATION", ">=": "RELATION", "!=": "RELATION", "and": "AND", "or": "OR", "not": "NOT",
-                 "+": "PM", "-": "PM", "*": "M_D_M", "/": "M_D_M", "%": "M_D_M", "**": "POWER", "in": "SOMETHING", "!" : "UNARY"}
+                 "+": "PM", "-": "PM", "*": "M_D_M", "/": "M_D_M", "%": "M_D_M", "**": "POWER", "in": "SOMETHING"}
 
     punctuators = {"(": "O_PARAM", ")": "C_PARAM", "[": "O_BRACK", "]": "C_BRACK", "{": "O_BRACE", "}": "C_BRACE", ":": "COLON",
                    ",": "SEPARATOR", ";": "TERMINATOR", ".": "DOT"}

@@ -2,6 +2,18 @@
 
 ## [Language Specification](https://docs.google.com/document/d/1qQZOctEwxQMSBbtUT8uUzJpPKKBRQgEXpMGCxYjlFF4/edit?usp=sharing)
 
+## Configuration
+Make `.env` file in the main directory of the project and give the following paths.
+```
+INPUT_FILE_PATH = ''
+OUTPUT_FILE_PATH = ''
+```
+
+Install the `dotenv` package.
+```
+$ pip install python
+```
+
 ## Collaborators
 
 The following collaborators developed this project:

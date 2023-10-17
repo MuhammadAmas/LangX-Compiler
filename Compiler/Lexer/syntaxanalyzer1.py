@@ -33,16 +33,16 @@ def syntaxError(message):
 try:
     def structure():
         global i, tokenList
-        if tokenList[i].type == 'EOF':
-            return True
-        elif MST():
-            structure()
-        elif class_def():
-            structure()
-        elif func_def():
-            structure()
-        else:
-            syntaxError("Syntax Error: Invalid start rule")
+
+        if MST():
+            if tokenList[i].type == 'EOF':
+                return True
+            # structure()
+        # elif class_def():
+        #     structure()
+        # elif func_def():
+        #     structure()
+        syntaxError("Syntax Error: Invalid start rule")
 
     def class_def():
         global i, tokenList
@@ -155,8 +155,8 @@ try:
                 params2()
         else:
             pass  # Epsilon case
-        
-    # ? ************************* Interfaces ************************* 
+
+    # ? ************************* Interfaces *************************
 
     def interface():
         global i, tokenList
@@ -206,8 +206,8 @@ try:
                         return True
         else:
             pass  # Epsilon case
-        
-    # ? ************************* Decleration ************************* 
+
+    # ? ************************* Decleration *************************
     def dec():
         global i, tokenList
         if tokenList[i].type == "DT":
@@ -271,7 +271,7 @@ try:
         else:
             return
 
-    # ? ************************* iterate ************************* 
+    # ? ************************* iterate *************************
     # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
 
     def for_loop():
@@ -372,12 +372,12 @@ try:
 
     def assignop():
         global i, tokenList
-        if tokenList[i].type in ["ASSIGN","COMBO_ASSIGN"]:
+        if tokenList[i].type in ["ASSIGN", "COMBO_ASSIGN"]:
             i += 1
             return True
         else:
             syntaxError("Syntax Error: Invalid assignment operator")
-    
+
     # <A2> -> <A2_tail>
 
     def A2():
@@ -469,25 +469,25 @@ try:
         if tokenList[i].type == "DT":
             dec()
         elif tokenList[i].type == "ARRAY":
-            array()       
+            array()
         elif tokenList[i].type == "ID":
             assign_st()
-        elif tokenList[i].type == "ID":
+        elif tokenList[i].type == "CALL_FUNC":
             func_call()
-        elif tokenList[i].type in ["INC_DEC", "ID"]:
+        elif tokenList[i].type == "INC_DEC":
             inc_dec_st()
         elif tokenList[i].type == "WHEN":
             when_otherwise()
         elif tokenList[i].type == "LOOP":
             for_loop()
         elif tokenList[i].type == "YIELD":
-            yield_exp()        
+            yield_exp()
         elif tokenList[i].type == "ATTEMPT":
             try_catch()
         elif tokenList[i].type == "DICT":
             dict_()
-        
-    # ? ************************* Array *************************        
+
+    # ? ************************* Array *************************
     # Array
     def array():
         if tokenList[i].type == "ARRAY":
@@ -498,15 +498,8 @@ try:
                 if tokenList[i].type == "ASSIGN":
                     i += 1
                     array_init()
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing '=' in array declaration")
-            else:
-                syntaxError(
-                    "Syntax Error: Missing ID in array declaration")
-        else:
-            syntaxError(
-                "Syntax Error: Missing data type in array declaration")
+        syntaxError(
+            "Syntax Error: Missing data type in array declaration")
 
     def dim():
         global i, tokenList
@@ -527,23 +520,18 @@ try:
             if tokenList[i].type == "C_BRACK":
                 i += 1
                 return True
-            else:
-                syntaxError(
-                    "Syntax Error: Missing ']' in array initialization")
-        else:
-            syntaxError(
-                "Syntax Error: Missing '[' in array initialization")
+        syntaxError(
+            "Syntax Error: Missing '[' in array initialization")
 
     def size():
         global i, tokenList
         if tokenList[i].type == "INT":
             i += 1
             return True
-        else:
-            syntaxError(
-                "Syntax Error: Missing integer constant for array size")
+        syntaxError(
+            "Syntax Error: Missing integer constant for array size")
 
-    # ? ************************* Dict ************************* 
+    # ? ************************* Dict *************************
 
     def dict_():
         if tokenList[i].type == "DICT":
@@ -554,15 +542,8 @@ try:
                 if tokenList[i].type == "C_BRACE":
                     i += 1
                     return True
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing '}' in dictionary declaration")
-            else:
-                syntaxError(
-                    "Syntax Error: Missing '{' in dictionary declaration")
-        else:
-            syntaxError(
-                "Syntax Error: Missing 'DICT' in dictionary declaration")
+        syntaxError(
+            "Syntax Error: Missing 'DICT' in dictionary declaration")
 
     def key_value_list():
         key_value()
@@ -581,8 +562,7 @@ try:
         if tokenList[i].type == "COLON":
             i += 1
             value()
-        else:
-            syntaxError("Syntax Error: Missing ':' in key-value pair")
+        syntaxError("Syntax Error: Missing ':' in key-value pair")
 
     def key():
         exp()
@@ -590,7 +570,7 @@ try:
     def value():
         exp()
 
-    # ? ************************* When Otherwise Check ************************* 
+    # ? ************************* When Otherwise Check *************************
 
     def when_otherwise():
         if tokenList[i].type == "WHEN":
@@ -648,22 +628,18 @@ try:
 
     # ? ************************* Function Call *************************
     def func_call():
-        if tokenList[i].type == "ID":
+        if tokenList[i].type == 'CALL_FUNC':
             i += 1
-            if tokenList[i].type == "O_PARAM":
+            if tokenList[i].type == "ID":
                 i += 1
-                param()
-                if tokenList[i].type == "C_PARAM":
+                if tokenList[i].type == "O_PARAM":
                     i += 1
-                    return True
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing ')' in function call")
-            else:
-                syntaxError("Syntax Error: Missing '(' in function call")
-        else:
-            syntaxError(
-                "Syntax Error: Missing function name in function call")
+                    param()
+                    if tokenList[i].type == "C_PARAM":
+                        i += 1
+                        return True
+        syntaxError(
+            "Syntax Error: Missing function name in function call")
 
     def param():
         exp()
@@ -698,28 +674,16 @@ try:
                             if tokenList[i].type == "C_BRACE":
                                 i += 1
                                 return True
-                            else:
-                                syntaxError("Syntax Error: Missing '}' in function body")
-                        else:
-                            syntaxError("Syntax Error: Missing '{' in function body")
-                    else:
-                        syntaxError("Syntax Error: Missing ')' in function definition")
-                else:
-                    syntaxError("Syntax Error: Missing '(' in function definition")
-            else:
-                syntaxError("Syntax Error: Missing function name in function definition")
-        else:
-            syntaxError("Syntax Error: Missing 'DEFINE' keyword in function definition")
-
+        syntaxError(
+            "Syntax Error: Missing 'DEFINE' keyword in function definition")
 
     def DT_func():
         global i, tokenList
         if tokenList[i].type in ["VOID", "INT"]:
             i += 1
             return True
-        else:
-            syntaxError(
-                "Syntax Error: Missing return type in function definition")
+        syntaxError(
+            "Syntax Error: Missing return type in function definition")
 
     def args():
         if tokenList[i].type == "DT":
@@ -727,9 +691,8 @@ try:
             if tokenList[i].type == "ID":
                 i += 1
                 n_args()
-        else:
-            syntaxError(
-                "Syntax Error: Missing data type in function arguments")
+        syntaxError(
+            "Syntax Error: Missing data type in function arguments")
 
     def n_args():
         global i, tokenList
@@ -740,9 +703,8 @@ try:
                 if tokenList[i].type == "ID":
                     i += 1
                     n_args()
-            else:
-                syntaxError(
-                    "Syntax Error: Missing data type in function arguments")
+            syntaxError(
+                "Syntax Error: Missing data type in function arguments")
         else:
             pass  # Epsilon case
 
@@ -755,12 +717,8 @@ try:
             if tokenList[i].type == "ASSIGN":
                 i += 1
                 exp()
-            else:
-                syntaxError(
-                    "Syntax Error: Missing '=' in assignment statement")
-        else:
-            syntaxError(
-                "Syntax Error: Missing variable name in assignment statement")
+        syntaxError(
+            "Syntax Error: Missing variable name in assignment statement")
 
     def A2():
         global i, tokenList
@@ -820,16 +778,10 @@ try:
         if tokenList[i].type == "INC_DEC":
             i += 1
             exp()
-        else:
-            exp()
-            if tokenList[i].type == "INC_DEC":
-                i += 1
-                return True
-            else:
-                syntaxError(
-                    "Syntax Error: Missing increment/decrement operator")
+        syntaxError(
+            "Syntax Error: Missing increment/decrement operator")
 
-    # ? ************************* Try Catch *************************  
+    # ? ************************* Try Catch *************************
     def try_catch():
         if tokenList[i].type == "ATTEMPT":
             i += 1
@@ -847,23 +799,8 @@ try:
                             if tokenList[i].type == "C_BRACE":
                                 i += 1
                                 return True
-                            else:
-                                syntaxError(
-                                    "Syntax Error: Missing '}' in 'finally' block")
-                        else:
-                            syntaxError(
-                                "Syntax Error: Missing '{' in 'finally' block")
-                    else:
-                        syntaxError(
-                            "Syntax Error: Missing 'FINALLY' block in 'try-catch' statement")
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing '}' in 'attempt' block")
-            else:
-                syntaxError("Syntax Error: Missing '{' in 'attempt' block")
-        else:
-            syntaxError(
-                "Syntax Error: Missing 'ATTEMPT' keyword in 'try-catch' statement")
+        syntaxError(
+            "Syntax Error: Missing 'ATTEMPT' keyword in 'try-catch' statement")
 
     def catch_block():
         global i, tokenList
@@ -879,17 +816,7 @@ try:
                         if tokenList[i].type == "C_BRACE":
                             i += 1
                             return True
-                        else:
-                            syntaxError(
-                                "Syntax Error: Missing '}' in 'catch' block")
-                    else:
-                        syntaxError(
-                            "Syntax Error: Missing '{' in 'catch' block")
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing error variable in 'catch' block")
-            else:
-                syntaxError("Syntax Error: Missing '(' in 'catch' block")
+            syntaxError("Syntax Error: Missing '(' in 'catch' block")
         else:
             pass  # Epsilon case
 
@@ -1019,14 +946,8 @@ try:
                 if tokenList[i].type == "C_PARAM":
                     i += 1
                     return True
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing ')' in function call")
-            else:
-                syntaxError("Syntax Error: Missing '(' in function call")
-        else:
-            syntaxError(
-                "Syntax Error: Missing function name in function call")
+        syntaxError(
+            "Syntax Error: Missing function name in function call")
 
     def param():
         exp()
@@ -1052,9 +973,8 @@ try:
             if tokenList[i].type == "INC_DEC":
                 i += 1
                 return True
-            else:
-                syntaxError(
-                    "Syntax Error: Missing increment/decrement operator")
+            syntaxError(
+                "Syntax Error: Missing increment/decrement operator")
 
 except LookupError:
     print("Tree Incomplete... Input Completely Parsed")

@@ -32,7 +32,7 @@ def syntaxError():
 try:
     def structure():
         global i, tokenList
-        if tokenList[i] == "mst":
+        if tokenList[i].type == "mst":
             i += 1
             structure()
         elif class_def():
@@ -44,40 +44,40 @@ try:
 
     def class_def():
         global i, tokenList
-        if tokenList[i] == "sealed":
+        if tokenList[i].type == "sealed":
             i += 1
-            if tokenList[i] == "class":
+            if tokenList[i].type == "class":
                 i += 1
-                if tokenList[i].type == "ID":
+                if tokenList[i].type.type == "ID":
                     i += 1
-                    if tokenList[i] == "{":
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
                         class_body()
-                        if tokenList[i] == "}":
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
                             return True
-        elif tokenList[i] == "class":
+        elif tokenList[i].type == "class":
             i += 1
-            if tokenList[i].type == "ID":
+            if tokenList[i].type.type == "ID":
                 i += 1
                 inheritance()
-                if tokenList[i] == "{":
+                if tokenList[i].type == "O_BRACE":
                     i += 1
                     class_body()
-                    if tokenList[i] == "}":
+                    if tokenList[i].type == "C_BRACE":
                         i += 1
                         return True
         return False
 
     def inheritance():
         global i, tokenList
-        if tokenList[i] == "extends":
+        if tokenList[i].type == "extends":
             i += 1
-            if tokenList[i].type == "ID":
+            if tokenList[i].type.type == "ID":
                 i += 1
-        elif tokenList[i] == "implements":
+        elif tokenList[i].type == "implements":
             i += 1
-            if tokenList[i].type == "ID":
+            if tokenList[i].type.type == "ID":
                 i += 1
                 inheritance_2()
         else:
@@ -85,9 +85,9 @@ try:
 
     def inheritance_2():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
-            if tokenList[i].type == "ID":
+            if tokenList[i].type.type == "ID":
                 i += 1
                 inheritance_2()
         else:
@@ -99,7 +99,7 @@ try:
 
     def XMST():
         global i, tokenList
-        if tokenList[i] in ["ID", "#", "constructor", "method"]:
+        if tokenList[i].type in ["ID", "#", "constructor", "method"]:
             XSST()
             XMST()
         else:
@@ -107,29 +107,29 @@ try:
 
     def XSST():
         global i, tokenList
-        if tokenList[i] == "ID":
+        if tokenList[i].type == "ID":
             i += 1
             init()
-            if tokenList[i] == ";":
+            if tokenList[i].type == "TERMINATOR":
                 i += 1
-        elif tokenList[i] == "#":
+        elif tokenList[i].type == "#":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 init()
-                if tokenList[i] == ";":
+                if tokenList[i].type == "TERMINATOR":
                     i += 1
-        elif tokenList[i] == "constructor":
+        elif tokenList[i].type == "constructor":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 params()
-                if tokenList[i] == ")":
+                if tokenList[i].type == "C_PARAM":
                     i += 1
-                    if tokenList[i] == "{":
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
                         MST()
-                        if tokenList[i] == "}":
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
         else:
             pass  # Epsilon case
@@ -144,7 +144,7 @@ try:
 
     def params2():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
@@ -154,23 +154,23 @@ try:
 
     def interface():
         global i, tokenList
-        if tokenList[i] == "interface":
+        if tokenList[i].type == "interface":
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
-                if tokenList[i] == "{":
+                if tokenList[i].type == "O_BRACE":
                     i += 1
                     interface_body()
-                    if tokenList[i] == "}":
+                    if tokenList[i].type == "C_BRACE":
                         i += 1
                         return True
         return False
 
     def interface_body():
         global i, tokenList
-        if tokenList[i] in ["ID", "constructor", "method"]:
+        if tokenList[i].type in ["ID", "constructor", "method"]:
             method_sign()
-            if tokenList[i] == ";":
+            if tokenList[i].type == "TERMINATOR":
                 i += 1
                 interface_body_2()
         else:
@@ -178,9 +178,9 @@ try:
 
     def interface_body_2():
         global i, tokenList
-        if tokenList[i] in ["ID", "constructor", "method"]:
+        if tokenList[i].type in ["ID", "constructor", "method"]:
             method_sign()
-            if tokenList[i] == ";":
+            if tokenList[i].type == "TERMINATOR":
                 i += 1
                 interface_body_2()
         else:
@@ -188,23 +188,23 @@ try:
 
     def method_sign():
         global i, tokenList
-        if tokenList[i] in ["constructor", "method"]:
+        if tokenList[i].type in ["constructor", "method"]:
             i += 1
-            if tokenList[i].type == "ID":
+            if tokenList[i].type.type == "ID":
                 i += 1
-                if tokenList[i] == "(":
+                if tokenList[i].type == "O_PARAM":
                     i += 1
                     params()
-                    if tokenList[i] == ")":
+                    if tokenList[i].type == "C_PARAM":
                         i += 1
         else:
             pass  # Epsilon case
 
     def dec():
         global i, tokenList
-        if tokenList[i] == "DT":
+        if tokenList[i].type == "DT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 init()
                 list()
@@ -213,40 +213,40 @@ try:
 
         def init():
             global i, tokenList
-            if tokenList[i] == "=":
+            if tokenList[i].type == "ASSIGN":
                 i += 1
                 init_1()
-            elif tokenList[i] == ";":
+            elif tokenList[i].type == "TERMINATOR":
                 return
             else:
                 raise Exception("Syntax Error")
 
         def init_1():
             global i, tokenList
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 init_2()
-            elif tokenList[i] in ["STRING", "CHAR", "FLOAT", "INT"]:
+            elif tokenList[i].type in ["STR", "CHAR", "FLT", "INT"]:
                 i += 1
             else:
                 exp()
 
         def init_2():
             global i, tokenList
-            if tokenList[i] == ",":
+            if tokenList[i].type == "SEPARATOR":
                 i += 1
-                if tokenList[i] == "ID":
+                if tokenList[i].type == "ID":
                     i += 1
                     init_2()
 
         def list():
             global i, tokenList
-            if tokenList[i] == ";":
+            if tokenList[i].type == "TERMINATOR":
                 i += 1
                 list_1()
-            elif tokenList[i] == ",":
+            elif tokenList[i].type == "SEPARATOR":
                 i += 1
-                if tokenList[i] == "ID":
+                if tokenList[i].type == "ID":
                     i += 1
                     init()
                     list()
@@ -255,7 +255,7 @@ try:
 
         def list_1():
             global i, tokenList
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 init()
                 list()
@@ -266,23 +266,23 @@ try:
 
     def for_loop():
         global i, tokenList
-        if tokenList[i] == "ITERATE":
+        if tokenList[i].type == "ITERATE":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 init()
-                if tokenList[i] == ";":
+                if tokenList[i].type == "TERMINATOR":
                     i += 1
                     cond()
-                    if tokenList[i] == ";":
+                    if tokenList[i].type == "TERMINATOR":
                         i += 1
                         update()
-                        if tokenList[i] == ")":
+                        if tokenList[i].type == "C_PARAM":
                             i += 1
-                            if tokenList[i] == "{":
+                            if tokenList[i].type == "O_BRACE":
                                 i += 1
                                 body()
-                                if tokenList[i] == "}":
+                                if tokenList[i].type == "C_BRACE":
                                     i += 1
                                 else:
                                     raise Exception(
@@ -305,16 +305,16 @@ try:
 
     def init():
         global i, tokenList
-        if tokenList[i] in ["DT", "ID"]:
+        if tokenList[i].type in ["DT", "ID"]:
             dec()
-        elif tokenList[i] == "ID":
+        elif tokenList[i].type == "ID":
             assign_st()
         else:
             pass  # Epsilon case
 
     def cond():
         global i, tokenList
-        if tokenList[i] in ["ID", "INT_CONST", "FLOAT_CONST", "STRING_CONST"]:
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR"]:
             comparison()
             cond_1()
         else:
@@ -322,7 +322,7 @@ try:
 
     def cond_1():
         global i, tokenList
-        if tokenList[i] in ["==", "!=", "<", ">", "<=", ">="]:
+        if tokenList[i].type == "RELATION":
             i += 1
             comparison()
         else:
@@ -330,7 +330,7 @@ try:
 
     def comparison():
         global i, tokenList
-        if tokenList[i] in ["ID", "INT_CONST", "FLOAT_CONST", "STRING_CONST"]:
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR"]:
             i += 1
         else:
             raise Exception(
@@ -338,10 +338,10 @@ try:
 
     def update():
         global i, tokenList
-        if tokenList[i] in ["++", "--"]:
+        if tokenList[i].type == "INC_DEC":
             i += 1
             exp()
-        elif tokenList[i] == "ID":
+        elif tokenList[i].type == "ID":
             assign_st()
         else:
             pass  # Epsilon case
@@ -349,7 +349,7 @@ try:
     # <assign_st> -> ID <A2> <assignop> <exp>
     def assign_st():
         global i, tokenList
-        if tokenList[i] == "ID":
+        if tokenList[i].type == "ID":
             i += 1
             A2()
             assignop()
@@ -359,7 +359,7 @@ try:
 
     def assignop():
         global i, tokenList
-        if tokenList[i] in ["=", "=+", "=-"]:
+        if tokenList[i].type in ["ASSIGN","COMBO_ASSIGN"]:
             i += 1
         else:
             raise Exception("Syntax Error: Invalid assignment operator")
@@ -373,21 +373,21 @@ try:
 
     def A2_tail():
         global i, tokenList
-        if tokenList[i] == ".":
+        if tokenList[i].type == "DOT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 A2()
-        elif tokenList[i] == "[":
+        elif tokenList[i].type == "O_BRACK":
             i += 1
             exp()
-            if tokenList[i] == "]":
+            if tokenList[i].type == "C_BRACK":
                 i += 1
                 A2()
-        elif tokenList[i] == "(":
+        elif tokenList[i].type == "O_PARAM":
             i += 1
             PL()
-            if tokenList[i] == ")":
+            if tokenList[i].type == "C_PARAM":
                 i += 1
                 F2()
         else:
@@ -397,15 +397,15 @@ try:
 
     def F2():
         global i, tokenList
-        if tokenList[i] == ".":
+        if tokenList[i].type == "DOT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 A2()
-        elif tokenList[i] == "[":
+        elif tokenList[i].type == "O_BRACK":
             i += 1
             exp()
-            if tokenList[i] == "]":
+            if tokenList[i].type == "C_BRACK":
                 i += 1
                 A2()
 
@@ -419,7 +419,7 @@ try:
 
     def param2():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             exp()
             param2()
@@ -430,7 +430,7 @@ try:
 
     def yield_exp():
         global i, tokenList
-        if tokenList[i] in ["ID", "CONST"]:
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
             i += 1
         else:
             pass  # Epsilon case
@@ -449,23 +449,23 @@ try:
     # <SST> → <dec> | <when_otherwise> | <iterate_st> | <assign_st> | <inc_dec_st> | <return_st> | <fn_call> | <try_catch> | <dict> | <array>
 
     def SST():
-        if tokenList[i] == "DT":
+        if tokenList[i].type == "DT":
             dec()
-        elif tokenList[i] == "WHEN":
+        elif tokenList[i].type == "WHEN":
             when_otherwise()
-        elif tokenList[i] == "ITERATE":
+        elif tokenList[i].type == "ITERATE":
             for_loop()
-        elif tokenList[i] == "ID":
+        elif tokenList[i].type == "ID":
             assign_st()
 
     # Array
     def array():
-        if tokenList[i] == "DT":
+        if tokenList[i].type == "DT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 dim()
-                if tokenList[i] == "=":
+                if tokenList[i].type == "ASSIGN":
                     i += 1
                     array_init()
                 else:
@@ -480,10 +480,10 @@ try:
 
     def dim():
         global i, tokenList
-        if tokenList[i] == "[":
+        if tokenList[i].type == "O_BRACK":
             i += 1
             size()
-            if tokenList[i] == "]":
+            if tokenList[i].type == "C_BRACK":
                 i += 1
                 dim()
         else:
@@ -491,10 +491,10 @@ try:
 
     def array_init():
         global i, tokenList
-        if tokenList[i] == "[":
+        if tokenList[i].type == "O_BRACK":
             i += 1
             exp()
-            if tokenList[i] == "]":
+            if tokenList[i].type == "C_BRACK":
                 i += 1
             else:
                 raise Exception(
@@ -505,7 +505,7 @@ try:
 
     def size():
         global i, tokenList
-        if tokenList[i] == "INT_CONST":
+        if tokenList[i].type == "INT":
             i += 1
         else:
             raise Exception(
@@ -514,12 +514,12 @@ try:
     # Dict
 
     def dict_():
-        if tokenList[i] == "DICT":
+        if tokenList[i].type == "DICT":
             i += 1
-            if tokenList[i] == "{":
+            if tokenList[i].type == "O_BRACE":
                 i += 1
                 key_value_list()
-                if tokenList[i] == "}":
+                if tokenList[i].type == "C_BRACE":
                     i += 1
                 else:
                     raise Exception(
@@ -537,7 +537,7 @@ try:
 
     def key_value_tail():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             key_value_list()
         else:
@@ -545,7 +545,7 @@ try:
 
     def key_value():
         key()
-        if tokenList[i] == ":":
+        if tokenList[i].type == "COLON":
             i += 1
             value()
         else:
@@ -560,14 +560,14 @@ try:
     # When Otherwise Check
 
     def when_otherwise():
-        if tokenList[i] == "WHEN":
+        if tokenList[i].type == "WHEN":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 exp()
-                if tokenList[i] == ")":
+                if tokenList[i].type == "C_PARAM":
                     i += 1
-                    if tokenList[i] == ":":
+                    if tokenList[i].type == "COLON":
                         i += 1
                         body()
                         if_else_tail()
@@ -585,14 +585,14 @@ try:
 
     def if_else_tail():
         global i, tokenList
-        if tokenList[i] == "CHECK":
+        if tokenList[i].type == "CHECK":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 exp()
-                if tokenList[i] == ")":
+                if tokenList[i].type == "C_PARAM":
                     i += 1
-                    if tokenList[i] == ":":
+                    if tokenList[i].type == "COLON":
                         i += 1
                         body()
                         if_else_tail()
@@ -602,9 +602,9 @@ try:
                 else:
                     raise Exception(
                         "Syntax Error: Missing ')' after condition in 'check' statement")
-        elif tokenList[i] == "OTHERWISE":
+        elif tokenList[i].type == "OTHERWISE":
             i += 1
-            if tokenList[i] == ":":
+            if tokenList[i].type == "COLON":
                 i += 1
                 body()
                 if_else_tail()
@@ -615,12 +615,12 @@ try:
 
     # Function Calling
     def func_call():
-        if tokenList[i] == "ID":
+        if tokenList[i].type == "ID":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 param()
-                if tokenList[i] == ")":
+                if tokenList[i].type == "C_PARAM":
                     i += 1
                 else:
                     raise Exception(
@@ -637,7 +637,7 @@ try:
 
     def param2():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             exp()
             param2()
@@ -647,51 +647,48 @@ try:
     # Function Definition
 
     def func_def():
+        global i, tokenList
         DT_func()
-        if tokenList[i] == "DEFINE":
+        if tokenList[i].type == "DEFINE":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
-                if tokenList[i] == "(":
+                if tokenList[i].type == "O_PARAM":
                     i += 1
                     args()
-                    if tokenList[i] == ")":
+                    if tokenList[i].type == "C_PARAM":
                         i += 1
-                        if tokenList[i] == "{":
+                        if tokenList[i].type == "O_BRACE":
                             i += 1
                             body()
-                            if tokenList[i] == "}":
+                            if tokenList[i].type == "C_BRACE":
                                 i += 1
                             else:
-                                raise Exception(
-                                    "Syntax Error: Missing '}' in function body")
+                                raise Exception("Syntax Error: Missing '}' in function body")
                         else:
-                            raise Exception(
-                                "Syntax Error: Missing '{' in function body")
+                            raise Exception("Syntax Error: Missing '{' in function body")
                     else:
-                        raise Exception(
-                            "Syntax Error: Missing ')' in function definition")
+                        raise Exception("Syntax Error: Missing ')' in function definition")
                 else:
-                    raise Exception(
-                        "Syntax Error: Missing '(' in function definition")
+                    raise Exception("Syntax Error: Missing '(' in function definition")
             else:
-                raise Exception(
-                    "Syntax Error: Missing function name in function definition")
+                raise Exception("Syntax Error: Missing function name in function definition")
         else:
-            raise Exception(
-                "Syntax Error: Missing 'DEFINE' keyword in function definition")
+            raise Exception("Syntax Error: Missing 'DEFINE' keyword in function definition")
+
 
     def DT_func():
-        if tokenList[i] in ["VOID", "INT"]:
+        global i, tokenList
+        if tokenList[i].type in ["VOID", "INT"]:
             i += 1
         else:
             raise Exception(
                 "Syntax Error: Missing return type in function definition")
 
     def args():
-        if tokenList[i] == "DT":
+        if tokenList[i].type == "DT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 n_args()
         else:
@@ -700,11 +697,11 @@ try:
 
     def n_args():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
-            if tokenList[i] == "DT":
+            if tokenList[i].type == "DT":
                 i += 1
-                if tokenList[i] == "ID":
+                if tokenList[i].type == "ID":
                     i += 1
                     n_args()
             else:
@@ -716,10 +713,10 @@ try:
     # Assignment Statement
 
     def assign_st():
-        if tokenList[i] == "ID":
+        if tokenList[i].type == "ID":
             i += 1
             A2()
-            if tokenList[i] == "=":
+            if tokenList[i].type == "ASSIGN":
                 i += 1
                 exp()
             else:
@@ -731,21 +728,21 @@ try:
 
     def A2():
         global i, tokenList
-        if tokenList[i] == ".":
+        if tokenList[i].type == "DOT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 A2()
-        elif tokenList[i] == "[":
+        elif tokenList[i].type == "O_BRACK":
             i += 1
             exp()
-            if tokenList[i] == "]":
+            if tokenList[i].type == "C_BRACK":
                 i += 1
                 A2()
-        elif tokenList[i] == "(":
+        elif tokenList[i].type == "O_PARAM":
             i += 1
             PL()
-            if tokenList[i] == ")":
+            if tokenList[i].type == "C_PARAM":
                 i += 1
                 F2()
         else:
@@ -753,15 +750,15 @@ try:
 
     def F2():
         global i, tokenList
-        if tokenList[i] == ".":
+        if tokenList[i].type == "DOT":
             i += 1
-            if tokenList[i] == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 A2()
-        elif tokenList[i] == "[":
+        elif tokenList[i].type == "O_BRACK":
             i += 1
             exp()
-            if tokenList[i] == "]":
+            if tokenList[i].type == "C_BRACK":
                 i += 1
                 A2()
         else:
@@ -773,7 +770,7 @@ try:
 
     def param2():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             exp()
             param2()
@@ -784,12 +781,12 @@ try:
 
     def inc_dec_st():
         global i, tokenList
-        if tokenList[i] in ["++", "--"]:
+        if tokenList[i].type == "INC_DEC":
             i += 1
             exp()
         else:
             exp()
-            if tokenList[i] in ["++", "--"]:
+            if tokenList[i].type == "INC_DEC":
                 i += 1
             else:
                 raise Exception(
@@ -798,20 +795,20 @@ try:
     # Attempt Catch
 
     def try_catch():
-        if tokenList[i] == "ATTEMPT":
+        if tokenList[i].type == "ATTEMPT":
             i += 1
-            if tokenList[i] == "{":
+            if tokenList[i].type == "O_BRACE":
                 i += 1
                 body()
-                if tokenList[i] == "}":
+                if tokenList[i].type == "C_BRACE":
                     i += 1
                     catch_block()
-                    if tokenList[i] == "FINALLY":
+                    if tokenList[i].type == "FINALLY":
                         i += 1
-                        if tokenList[i] == "{":
+                        if tokenList[i].type == "O_BRACE":
                             i += 1
                             body()
-                            if tokenList[i] == "}":
+                            if tokenList[i].type == "C_BRACE":
                                 i += 1
                             else:
                                 raise Exception(
@@ -833,16 +830,16 @@ try:
 
     def catch_block():
         global i, tokenList
-        if tokenList[i] == "CATCH":
+        if tokenList[i].type == "CATCH":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
-                if tokenList[i] == "ID" and tokenList[i + 1] == ")":
+                if tokenList[i].type == "ID" and tokenList[i + 1] == "C_PARAM":
                     i += 2
-                    if tokenList[i] == "{":
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
                         body()
-                        if tokenList[i] == "}":
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
                         else:
                             raise Exception(
@@ -866,7 +863,7 @@ try:
     # <exp'>-> OR <a> <exp'> | ϵ
     def exp_prime():
         global i, tokenList
-        if tokenList[i] == "OR":
+        if tokenList[i].type == "OR":
             i += 1
             a()
             exp_prime()
@@ -881,7 +878,7 @@ try:
     # <a'>  -> AND <r> <a'> | ϵ
     def a_prime():
         global i, tokenList
-        if tokenList[i] == "AND":
+        if tokenList[i].type == "AND":
             i += 1
             r()
             a_prime()
@@ -896,7 +893,7 @@ try:
     # <r'> -> ROP<e> <r'> | ϵ
     def r_prime():
         global i, tokenList
-        if tokenList[i] in ["==", "!=", "<", ">", "<=", ">="]:
+        if tokenList[i].type == "RELATION":
             i += 1
             e()
             r_prime()
@@ -911,7 +908,7 @@ try:
     # <e'> -> PM<t> <e'> | ϵ
     def e_prime():
         global i, tokenList
-        if tokenList[i] in ["+", "-"]:
+        if tokenList[i].type == "PM":
             i += 1
             t()
             e_prime()
@@ -926,7 +923,7 @@ try:
     # <t'> -> MDM <q> <t'> | ϵ
     def t_prime():
         global i, tokenList
-        if tokenList[i] in ["*", "/", "%"]:
+        if tokenList[i].type == "M_D_M":
             i += 1
             q()
             t_prime()
@@ -941,7 +938,7 @@ try:
     # <q'> -> NOT <F> <q'> | ϵ
     def q_prime():
         global i, tokenList
-        if tokenList[i] == "NOT":
+        if tokenList[i].type == "NOT":
             i += 1
             F()
             q_prime()
@@ -951,7 +948,7 @@ try:
     # <F>-> ID <F'>
     def F():
         global i, tokenList
-        if tokenList[i] == "ID":
+        if tokenList[i].type == "ID":
             i += 1
             F_prime()
         else:
@@ -960,13 +957,13 @@ try:
     # <F'>  -> <func_call> | <inc_dec_st> | <exp> | !<F> | <const> | ϵ
     def F_prime():
         global i, tokenList
-        if tokenList[i] == "(":
+        if tokenList[i].type == "O_PARAM":
             func_call()
-        elif tokenList[i] in ["++", "--"]:
+        elif tokenList[i].type == "INC_DEC":
             inc_dec_st()
-        elif tokenList[i] in ["ID", "INT_CONST", "FLOAT_CONST", "STRING_CONST"]:
+        elif tokenList[i].type in ["ID", "INT_CONST", "FLOAT_CONST", "STRING_CONST"]:
             exp()
-        elif tokenList[i] == "!":
+        elif tokenList[i].type == "NOT":
             i += 1
             F()
         else:
@@ -975,12 +972,12 @@ try:
     # Function calling
     def func_call():
         global i, tokenList
-        if tokenList[i] == "ID":
+        if tokenList[i].type == "ID":
             i += 1
-            if tokenList[i] == "(":
+            if tokenList[i].type == "O_PARAM":
                 i += 1
                 param()
-                if tokenList[i] == ")":
+                if tokenList[i].type == "C_PARAM":
                     i += 1
                 else:
                     raise Exception(
@@ -997,7 +994,7 @@ try:
 
     def param2():
         global i, tokenList
-        if tokenList[i] == ",":
+        if tokenList[i].type == "SEPARATOR":
             i += 1
             exp()
             param2()
@@ -1007,12 +1004,12 @@ try:
     # Increment-Decrement Statement
     def inc_dec_st():
         global i, tokenList
-        if tokenList[i] in ["++", "--"]:
+        if tokenList[i].type == "INC_DEC":
             i += 1
             exp()
         else:
             exp()
-            if tokenList[i] in ["++", "--"]:
+            if tokenList[i].type == "INC_DEC":
                 i += 1
             else:
                 raise Exception(

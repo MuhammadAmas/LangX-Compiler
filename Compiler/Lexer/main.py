@@ -5,7 +5,7 @@ from readSourceCode import readSourceCode
 from wordBreaker import breakWords
 from classifyToken import classifyToken
 from generateOutput import generateOutput
-from syntaxAnalyzer import syntaxAnalyzer
+from syntaxanalyzer1 import syntaxAnalyzer
 
 load_dotenv()
 

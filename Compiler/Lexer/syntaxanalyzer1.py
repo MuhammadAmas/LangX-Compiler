@@ -961,7 +961,7 @@ try:
             func_call()
         elif tokenList[i].type == "INC_DEC":
             inc_dec_st()
-        elif tokenList[i].type in ["ID", "INT_CONST", "FLOAT_CONST", "STRING_CONST"]:
+        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
             exp()
         elif tokenList[i].type == "NOT":
             i += 1

@@ -12,6 +12,7 @@ def syntaxAnalyzer(tokens):
     tokenList = tokens
     result = structure()
     if (not result):
+        # print('Syntax error')
         synError += "\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type + \
             "\n\tFile:\t\'.\\input.txt\' [@ " + str(
                 tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt) + "\n\n\n"
@@ -24,7 +25,6 @@ def syntaxAnalyzer(tokens):
 
 def syntaxError(message):
     global i, tokenList, errorAt
-    print('Error message :>>', message)
     if (i > errorAt):
         errorAt = i
     return False
@@ -33,24 +33,23 @@ def syntaxError(message):
 try:
     def structure():
         global i, tokenList
-
+        if tokenList[i].type == 'EOF':
+            return True
         if MST():
-            if tokenList[i].type == 'EOF':
-                return True
-            # structure()
-        # elif class_def():
-        #     structure()
-        # elif func_def():
-        #     structure()
+            structure()
+        elif class_def():
+            structure()
+        elif func_def():
+            structure()
         syntaxError("Syntax Error: Invalid start rule")
 
     def class_def():
         global i, tokenList
-        if tokenList[i].type == "sealed":
+        if tokenList[i].type == "SEALED":
             i += 1
-            if tokenList[i].type == "class":
+            if tokenList[i].type == "GROUP":
                 i += 1
-                if tokenList[i].type.type == "ID":
+                if tokenList[i].type == "ID":
                     i += 1
                     if tokenList[i].type == "O_BRACE":
                         i += 1
@@ -58,7 +57,7 @@ try:
                         if tokenList[i].type == "C_BRACE":
                             i += 1
                             return True
-        elif tokenList[i].type == "class":
+        elif tokenList[i].type == "GROUP":
             i += 1
             if tokenList[i].type.type == "ID":
                 i += 1
@@ -215,7 +214,7 @@ try:
             if tokenList[i].type == "ID":
                 i += 1
                 init()
-                list()
+                list_()
         else:
             syntaxError("Syntax Error")
 
@@ -238,6 +237,7 @@ try:
             i += 1
             return True
         else:
+            
             exp()
 
     def init_2():
@@ -258,7 +258,7 @@ try:
             if tokenList[i].type == "ID":
                 i += 1
                 init()
-                list()
+                list_()
         else:
             syntaxError("Syntax Error")
 
@@ -267,9 +267,9 @@ try:
         if tokenList[i].type == "ID":
             i += 1
             init()
-            list()
+            list_()
         else:
-            return
+            return True
 
     # ? ************************* iterate *************************
     # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
@@ -460,13 +460,16 @@ try:
     def MST():
         if tokenList[i].type == 'EOF':
             return False
-        SST()
-        MST()
+        if SST():
+            MST()
+        # return True
 
     # <SST> → <dec> | <when_otherwise> | <iterate_st> | <assign_st> | <inc_dec_st> | <return_st> | <fn_call> | <try_catch> | <dict> | <array>
 
     def SST():
-        if tokenList[i].type == "DT":
+        if tokenList[i].type == 'EOF':
+            return False
+        elif tokenList[i].type == "DT":
             dec()
         elif tokenList[i].type == "ARRAY":
             array()
@@ -490,6 +493,7 @@ try:
     # ? ************************* Array *************************
     # Array
     def array():
+        global i, tokenList
         if tokenList[i].type == "ARRAY":
             i += 1
             if tokenList[i].type == "ID":
@@ -534,6 +538,7 @@ try:
     # ? ************************* Dict *************************
 
     def dict_():
+        global i , tokenList
         if tokenList[i].type == "DICT":
             i += 1
             if tokenList[i].type == "O_BRACE":
@@ -573,6 +578,7 @@ try:
     # ? ************************* When Otherwise Check *************************
 
     def when_otherwise():
+        global i, tokenList
         if tokenList[i].type == "WHEN":
             i += 1
             if tokenList[i].type == "O_PARAM":
@@ -580,9 +586,12 @@ try:
                 exp()
                 if tokenList[i].type == "C_PARAM":
                     i += 1
-                    if tokenList[i].type == "COLON":
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
                         body()
+                        if tokenList[i].type == "C_BRACE":
+                            i += 1
+                            
                         if_else_tail()
                     else:
                         syntaxError(
@@ -605,9 +614,11 @@ try:
                 exp()
                 if tokenList[i].type == "C_PARAM":
                     i += 1
-                    if tokenList[i].type == "COLON":
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
                         body()
+                    if tokenList[i].type == "C_BRACE":
+                        i += 1
                         if_else_tail()
                     else:
                         syntaxError(
@@ -617,9 +628,11 @@ try:
                         "Syntax Error: Missing ')' after condition in 'check' statement")
         elif tokenList[i].type == "OTHERWISE":
             i += 1
-            if tokenList[i].type == "COLON":
+            if tokenList[i].type == "O_BRACE":
                 i += 1
                 body()
+                if tokenList[i].type == "C_BRACE":
+                    i += 1
                 if_else_tail()
             else:
                 syntaxError("Syntax Error: Missing ':' after 'otherwise'")
@@ -686,6 +699,7 @@ try:
             "Syntax Error: Missing return type in function definition")
 
     def args():
+        global i, tokenList
         if tokenList[i].type == "DT":
             i += 1
             if tokenList[i].type == "ID":
@@ -711,6 +725,7 @@ try:
     # Assignment Statement
 
     def assign_st():
+        global i, tokenList
         if tokenList[i].type == "ID":
             i += 1
             A2()
@@ -783,6 +798,7 @@ try:
 
     # ? ************************* Try Catch *************************
     def try_catch():
+        global i , tokenList
         if tokenList[i].type == "ATTEMPT":
             i += 1
             if tokenList[i].type == "O_BRACE":
@@ -818,6 +834,7 @@ try:
                             return True
             syntaxError("Syntax Error: Missing '(' in 'catch' block")
         else:
+            return True
             pass  # Epsilon case
 
     # ? ************************* Expression *************************
@@ -917,6 +934,12 @@ try:
         if tokenList[i].type == "ID":
             i += 1
             F_prime()
+        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            i += 1
+            return True
+        elif tokenList[i].type == 'NOT':
+            i+=1
+            F()
         else:
             syntaxError("Syntax Error: Expected ID")
 

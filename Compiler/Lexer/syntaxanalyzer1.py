@@ -83,7 +83,7 @@ try:
                 i += 1
                 inheritance_2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def inheritance_2():
         global i, tokenList
@@ -93,7 +93,7 @@ try:
                 i += 1
                 inheritance_2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def class_body():
         global i, tokenList
@@ -105,7 +105,7 @@ try:
             XSST()
             XMST()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def XSST():
         global i, tokenList
@@ -135,7 +135,7 @@ try:
                             i += 1
                             return True
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def params():
         global i, tokenList
@@ -143,7 +143,7 @@ try:
             i += 1
             params2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def params2():
         global i, tokenList
@@ -153,7 +153,7 @@ try:
                 i += 1
                 params2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # ? ************************* Interfaces *************************
 
@@ -179,7 +179,7 @@ try:
                 i += 1
                 interface_body_2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def interface_body_2():
         global i, tokenList
@@ -189,7 +189,7 @@ try:
                 i += 1
                 interface_body_2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def method_sign():
         global i, tokenList
@@ -204,7 +204,7 @@ try:
                         i += 1
                         return True
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # ? ************************* Decleration *************************
     def dec():
@@ -321,42 +321,24 @@ try:
         elif tokenList[i].type == "ID":
             assign_st()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def cond():
         global i, tokenList
-        if tokenList[i].type in ["ID", "INT", "FLT", "STR"]:
-            comparison()
-            cond_1()
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR","CHAR","NOT"]:
+            exp()
         else:
-            pass  # Epsilon case
-
-    def cond_1():
-        global i, tokenList
-        if tokenList[i].type == "RELATION":
-            i += 1
-            comparison()
-        else:
-            pass  # Epsilon case
-
-    def comparison():
-        global i, tokenList
-        if tokenList[i].type in ["ID", "INT", "FLT", "STR"]:
-            i += 1
-            return True
-        else:
-            syntaxError(
-                "Syntax Error: Expected ID or constant in comparison")
+            return True # Epsilon case
 
     def update():
         global i, tokenList
         if tokenList[i].type == "INC_DEC":
             i += 1
-            exp()
+            inc_dec_st()
         elif tokenList[i].type == "ID":
             assign_st()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # ? ************************* Assignment *************************
     # <assign_st> -> ID <A2> <assignop> <exp>
@@ -374,18 +356,10 @@ try:
         global i, tokenList
         if tokenList[i].type in ["ASSIGN", "COMBO_ASSIGN"]:
             i += 1
-            return True
         else:
             syntaxError("Syntax Error: Invalid assignment operator")
 
-    # <A2> -> <A2_tail>
-
     def A2():
-        A2_tail()
-
-    # <A2_tail> -> .ID <A2> | [<exp>] <A2> | (<PL>) <F2> | E
-
-    def A2_tail():
         global i, tokenList
         if tokenList[i].type == "DOT":
             i += 1
@@ -404,10 +378,6 @@ try:
             if tokenList[i].type == "C_PARAM":
                 i += 1
                 F2()
-        else:
-            pass  # Epsilon case
-
-    # <F2> -> .ID <A2> | [<exp>] <A2> | E
 
     def F2():
         global i, tokenList
@@ -423,13 +393,9 @@ try:
                 i += 1
                 A2()
 
-    # <PL> -> <exp> <param2>
-
     def PL():
         exp()
         param2()
-
-    # <param2> -> , <exp> <param2> | E
 
     def param2():
         global i, tokenList
@@ -437,8 +403,6 @@ try:
             i += 1
             exp()
             param2()
-        else:
-            pass  # Epsilon case
 
     # <yield_exp> → <exp> | E
 
@@ -448,7 +412,7 @@ try:
             i += 1
             return True
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # <body> → <MST>
 
@@ -495,45 +459,91 @@ try:
     def array():
         global i, tokenList
         if tokenList[i].type == "ARRAY":
-            i += 1
-            if tokenList[i].type == "ID":
+            i+=1
+            if tokenList[i].type == "DT":
                 i += 1
-                dim()
-                if tokenList[i].type == "ASSIGN":
+                if tokenList[i].type == "ID":
                     i += 1
-                    array_init()
-        syntaxError(
-            "Syntax Error: Missing data type in array declaration")
+                    dims()
+                    array_body()
+                else:
+                    syntaxError("Syntax Error: Missing ID in array declaration")
+            else:
+                syntaxError("Syntax Error: Missing data type in array declaration")
 
-    def dim():
+    def dims():
         global i, tokenList
         if tokenList[i].type == "O_BRACK":
             i += 1
-            size()
-            if tokenList[i].type == "C_BRACK":
+            if tokenList[i].type == "INT":
                 i += 1
-                dim()
+                if tokenList[i].type == "C_BRACK":
+                    i += 1
+                    dims()
+            else:
+                syntaxError("Syntax Error: Missing integer constant for array size")
         else:
-            pass  # Epsilon case
+            return True  # Epsilon case
 
-    def array_init():
+    def array_body():
+        global i, tokenList
+        if tokenList[i].type == "ASSIGN":
+            i += 1
+            if tokenList[i].type == "O_BRACK":
+                i += 1
+                array_values()
+                if tokenList[i].type == "C_BRACK":
+                    i += 1
+                    return True
+                else:
+                    syntaxError("Syntax Error: Missing ']' in array body")
+            else:
+                syntaxError("Syntax Error: Missing '[' in array body")
+        else:
+            syntaxError("Syntax Error: Missing '=' in array declaration")
+
+    def array_values():
+        global i, tokenList
+        if tokenList[i].type in ["O_BRACK"]: 
+            nested_array()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+        else:
+            value_list()
+
+    def nested_array():
         global i, tokenList
         if tokenList[i].type == "O_BRACK":
             i += 1
-            exp()
+            value_list()
             if tokenList[i].type == "C_BRACK":
                 i += 1
-                return True
-        syntaxError(
-            "Syntax Error: Missing '[' in array initialization")
+        
+        elif tokenList[i].type == "O_BRACK":
+            i+=1
+            value_list()
+            if tokenList[i].type == "C_BRACK":
+                i+=1
+                if tokenList[i].type == "SEPARATOR":
+                    value_list()
+        else:
+            syntaxError("Syntax Error: Missing '[' in nested array")
 
-    def size():
+    def value_list():
         global i, tokenList
-        if tokenList[i].type == "INT":
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
             i += 1
-            return True
-        syntaxError(
-            "Syntax Error: Missing integer constant for array size")
+            value()
+        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            value()
+            if tokenList[i].type == "SEPARATOR":
+                i += 1
+                value_list()               
+        else:
+            syntaxError("Syntax Error: Missing value in the value list")
+
+    def value():
+        exp()
 
     # ? ************************* Dict *************************
 
@@ -541,12 +551,16 @@ try:
         global i , tokenList
         if tokenList[i].type == "DICT":
             i += 1
-            if tokenList[i].type == "O_BRACE":
+            if tokenList[i].type == "ID":
                 i += 1
-                key_value_list()
-                if tokenList[i].type == "C_BRACE":
+                if tokenList[i].type == "ASSIGN":
                     i += 1
-                    return True
+                    if tokenList[i].type == "O_BRACE":
+                        i += 1
+                        key_value_list()
+                        if tokenList[i].type == "C_BRACE":
+                            i += 1
+                            return True
         syntaxError(
             "Syntax Error: Missing 'DICT' in dictionary declaration")
 
@@ -560,7 +574,7 @@ try:
             i += 1
             key_value_list()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def key_value():
         key()
@@ -637,7 +651,7 @@ try:
             else:
                 syntaxError("Syntax Error: Missing ':' after 'otherwise'")
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # ? ************************* Function Call *************************
     def func_call():
@@ -665,7 +679,7 @@ try:
             exp()
             param2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # Function Definition
 
@@ -720,7 +734,7 @@ try:
             syntaxError(
                 "Syntax Error: Missing data type in function arguments")
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # Assignment Statement
 
@@ -755,7 +769,7 @@ try:
                 i += 1
                 F2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def F2():
         global i, tokenList
@@ -771,7 +785,7 @@ try:
                 i += 1
                 A2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     def PL():
         exp()
@@ -784,17 +798,27 @@ try:
             exp()
             param2()
         else:
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # Increment-Decrement Statement
 
     def inc_dec_st():
         global i, tokenList
-        if tokenList[i].type == "INC_DEC":
+        if tokenList[i].type in ["ID", "STR", "CHAR", "FLT", "INT"]:
             i += 1
             exp()
-        syntaxError(
-            "Syntax Error: Missing increment/decrement operator")
+            inc_dec_op()
+        else:
+            syntaxError("Syntax Error: Missing identifier or value for increment/decrement statement")
+
+    def inc_dec_op():
+        global i, tokenList
+        if tokenList[i].type == "INC_DEC":
+            i += 1
+        elif tokenList[i].value in ["++", "--"]:
+            i += 1
+        else:
+            syntaxError("Syntax Error: Invalid increment/decrement operator")
 
     # ? ************************* Try Catch *************************
     def try_catch():
@@ -834,8 +858,7 @@ try:
                             return True
             syntaxError("Syntax Error: Missing '(' in 'catch' block")
         else:
-            return True
-            pass  # Epsilon case
+            return True # Epsilon case
 
     # ? ************************* Expression *************************
     # <exp>-> <a> <exp'>
@@ -843,120 +866,101 @@ try:
         a()
         exp_prime()
 
-    # <exp'>-> OR <a> <exp'> | ϵ
     def exp_prime():
         global i, tokenList
         if tokenList[i].type == "OR":
             i += 1
             a()
             exp_prime()
-        else:
-            pass  # Epsilon case
 
-    # <a> -> <r> <a'>
     def a():
         r()
         a_prime()
 
-    # <a'>  -> AND <r> <a'> | ϵ
     def a_prime():
         global i, tokenList
         if tokenList[i].type == "AND":
             i += 1
             r()
             a_prime()
-        else:
-            pass  # Epsilon case
 
-    # <r> -> <e> <r'>
     def r():
         e()
         r_prime()
 
-    # <r'> -> ROP<e> <r'> | ϵ
     def r_prime():
         global i, tokenList
         if tokenList[i].type == "RELATION":
             i += 1
             e()
             r_prime()
-        else:
-            pass  # Epsilon case
 
-    # <e>  -> <t> <e'>
     def e():
         t()
         e_prime()
 
-    # <e'> -> PM<t> <e'> | ϵ
     def e_prime():
         global i, tokenList
         if tokenList[i].type == "PM":
             i += 1
             t()
             e_prime()
-        else:
-            pass  # Epsilon case
 
-    # <t> -> <q> <t'>
     def t():
-        q()
+        f()
         t_prime()
 
-    # <t'> -> MDM <q> <t'> | ϵ
     def t_prime():
         global i, tokenList
         if tokenList[i].type == "M_D_M":
             i += 1
-            q()
+            f()
             t_prime()
-        else:
-            pass  # Epsilon case
 
-    # <q> -> <F> <q'>
-    def q():
-        F()
-        q_prime()
-
-    # <q'> -> NOT <F> <q'> | ϵ
-    def q_prime():
-        global i, tokenList
-        if tokenList[i].type == "NOT":
-            i += 1
-            F()
-            q_prime()
-        else:
-            pass  # Epsilon case
-
-    # <F>-> ID <F'>
-    def F():
+    def f():
         global i, tokenList
         if tokenList[i].type == "ID":
             i += 1
-            F_prime()
-        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            f_init()
+        elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
             i += 1
-            return True
-        elif tokenList[i].type == 'NOT':
-            i+=1
-            F()
-        else:
-            syntaxError("Syntax Error: Expected ID")
-
-    # <F'>  -> <func_call> | <inc_dec_st> | <exp> | !<F> | <const> | ϵ
-    def F_prime():
-        global i, tokenList
-        if tokenList[i].type == "O_PARAM":
-            func_call()
-        elif tokenList[i].type == "INC_DEC":
-            inc_dec_st()
-        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
-            exp()
         elif tokenList[i].type == "NOT":
             i += 1
-            F()
+            f()
+        elif tokenList[i].type == "CALLING":
+            i += 1
+            func_call()
         else:
-            pass  # Epsilon case
+            syntaxError("Syntax Error: Expected ID or literal")
+
+    def f_init():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                f_init()
+        elif tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type == "INC_DEC":
+            i += 1
+        else:
+            return True
+    def f_init_tail():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                f_init()
+        else:
+            return True
 
     # Function calling
     def func_call():
@@ -983,21 +987,7 @@ try:
             exp()
             param2()
         else:
-            pass  # Epsilon case
-
-    # Increment-Decrement Statement
-    def inc_dec_st():
-        global i, tokenList
-        if tokenList[i].type == "INC_DEC":
-            i += 1
-            exp()
-        else:
-            exp()
-            if tokenList[i].type == "INC_DEC":
-                i += 1
-                return True
-            syntaxError(
-                "Syntax Error: Missing increment/decrement operator")
-
+            return True
+    
 except LookupError:
     print("Tree Incomplete... Input Completely Parsed")

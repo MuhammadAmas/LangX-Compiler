@@ -17,7 +17,7 @@ def syntaxAnalyzer(tokens):
             "\n\tFile:\t\'.\\input.txt\' [@ " + str(
                 tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt) + "\n\n\n"
         print("\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type +
-              "\n\tFile:\t\'.\\input.txt\' [@ " + str(tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt))
+              "\n\tFile:\t\'.\\input.txt\' [@ line " + str(tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt))
     if result:
         print("Source code is syntactically correct :)")
     return synError, result
@@ -25,6 +25,7 @@ def syntaxAnalyzer(tokens):
 
 def syntaxError(message):
     global i, tokenList, errorAt
+    # print(message, f":>> i f{tokenList[i].type}, tokenList f{tokenList[i].value}, errorAt f{errorAt}" )
     if (i > errorAt):
         errorAt = i
     return False
@@ -435,8 +436,10 @@ try:
             return False
         elif tokenList[i].type == "DT":
             dec()
+            SST()
         elif tokenList[i].type == "ARRAY":
             array()
+            SST()
         elif tokenList[i].type == "ID":
             assign_st()
         elif tokenList[i].type == "CALL_FUNC":
@@ -445,6 +448,7 @@ try:
             inc_dec_st()
         elif tokenList[i].type == "WHEN":
             when_otherwise()
+            # SST()
         elif tokenList[i].type == "LOOP":
             for_loop()
         elif tokenList[i].type == "YIELD":
@@ -460,16 +464,11 @@ try:
         global i, tokenList
         if tokenList[i].type == "ARRAY":
             i+=1
-            if tokenList[i].type == "DT":
+            if tokenList[i].type == "ID":
                 i += 1
-                if tokenList[i].type == "ID":
-                    i += 1
-                    dims()
-                    array_body()
-                else:
-                    syntaxError("Syntax Error: Missing ID in array declaration")
-            else:
-                syntaxError("Syntax Error: Missing data type in array declaration")
+                dims()
+                array_body()
+        syntaxError("Syntax Error: Missing data type in array declaration")
 
     def dims():
         global i, tokenList
@@ -495,12 +494,7 @@ try:
                 if tokenList[i].type == "C_BRACK":
                     i += 1
                     return True
-                else:
-                    syntaxError("Syntax Error: Missing ']' in array body")
-            else:
-                syntaxError("Syntax Error: Missing '[' in array body")
-        else:
-            syntaxError("Syntax Error: Missing '=' in array declaration")
+        syntaxError("Syntax Error: Missing '=' in array declaration")
 
     def array_values():
         global i, tokenList
@@ -577,6 +571,7 @@ try:
             return True # Epsilon case
 
     def key_value():
+        global i, tokenList
         key()
         if tokenList[i].type == "COLON":
             i += 1
@@ -584,9 +579,18 @@ try:
         syntaxError("Syntax Error: Missing ':' in key-value pair")
 
     def key():
-        exp()
+        global i, tokenList
+        if tokenList[i].type == "STR" or tokenList[i].type == "CHAR":
+            i+=1
+            return True
+        else:
+            exp()
 
     def value():
+        global i, tokenList
+        if tokenList[i].type == "STR" or tokenList[i].type == "CHAR":
+            i+=1
+            return True
         exp()
 
     # ? ************************* When Otherwise Check *************************
@@ -596,6 +600,7 @@ try:
         if tokenList[i].type == "WHEN":
             i += 1
             if tokenList[i].type == "O_PARAM":
+                print('O_PARAM')
                 i += 1
                 exp()
                 if tokenList[i].type == "C_PARAM":
@@ -607,17 +612,7 @@ try:
                             i += 1
                             
                         if_else_tail()
-                    else:
-                        syntaxError(
-                            "Syntax Error: Missing ':' after condition in 'when' statement")
-                else:
-                    syntaxError(
-                        "Syntax Error: Missing ')' after condition in 'when' statement")
-            else:
-                syntaxError(
-                    "Syntax Error: Missing '(' in 'when' statement")
-        else:
-            syntaxError("Syntax Error: Missing 'WHEN' in 'when' statement")
+        syntaxError("Syntax Error: Missing 'WHEN' in 'when' statement")
 
     def if_else_tail():
         global i, tokenList
@@ -686,21 +681,23 @@ try:
     def func_def():
         global i, tokenList
         DT_func()
-        if tokenList[i].type == "DEFINE":
-            i += 1
-            if tokenList[i].type == "ID":
+        if tokenList[i].type in ["DT", "VOID"]:
+            i+=1
+            if tokenList[i].type == "DEFINE":
                 i += 1
-                if tokenList[i].type == "O_PARAM":
+                if tokenList[i].type == "ID":
                     i += 1
-                    args()
-                    if tokenList[i].type == "C_PARAM":
+                    if tokenList[i].type == "O_PARAM":
                         i += 1
-                        if tokenList[i].type == "O_BRACE":
+                        args()
+                        if tokenList[i].type == "C_PARAM":
                             i += 1
-                            body()
-                            if tokenList[i].type == "C_BRACE":
+                            if tokenList[i].type == "O_BRACE":
                                 i += 1
-                                return True
+                                body()
+                                if tokenList[i].type == "C_BRACE":
+                                    i += 1
+                                    return True
         syntaxError(
             "Syntax Error: Missing 'DEFINE' keyword in function definition")
 
@@ -848,8 +845,9 @@ try:
             i += 1
             if tokenList[i].type == "O_PARAM":
                 i += 1
-                if tokenList[i].type == "ID" and tokenList[i + 1] == "C_PARAM":
-                    i += 2
+                dec()
+                if tokenList[i] == "C_PARAM":
+                    i += 1
                     if tokenList[i].type == "O_BRACE":
                         i += 1
                         body()
@@ -930,8 +928,7 @@ try:
         elif tokenList[i].type == "CALLING":
             i += 1
             func_call()
-        else:
-            syntaxError("Syntax Error: Expected ID or literal")
+        syntaxError("Syntax Error: Expected ID or literal")
 
     def f_init():
         global i, tokenList

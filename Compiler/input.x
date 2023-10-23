@@ -1,10 +1,62 @@
-Compiler
+array arry [1] =  [2]
 num a = 9;
-num a = 9.0
+num a = 9;
+sealed group A {
+    z = 5
+}
+when (a){
+    num a = 2;
+}check(abc){
+    num a = 2;
+}otherwise{
+    num a = 2;
+}   
+
+num define func1 (num a){
+    num a = 2;
+}
+sealed group A  {
+    z = 5
+}
+
+when (a){
+    num a = 2;
+}check(abc){
+    num a = 2;
+}otherwise{
+    num a = 2;
+}  
+num a = 9;
 num x = 42;
-?Invalid Test Cases (not matching the pattern):
-a??test
-egw 
-gsg??
-array abc = ["a", "b", "c", 9, 2, 3,'d', 'e', 'f', 9.0, 8.34, 8.34abc.34]
-num num1= 2+3*9;
+
+
+??attempt{
+    num a = 2;
+}catch(num d){
+    num a = 2;
+}finally{
+    num a = 2;
+}??
+
+dict diction = {
+    a : 'f'
+}
+
+??when(){
+
+}otherwise{
+
+}??
+
+
+
+when (a){
+    num a = 2;
+}check(abc){
+    num a = 2;
+}otherwise{
+    num a = 2;
+}  
+array arr[1][2] =  [[2],[2]]
+
+array arr[1][2] =  [2]

@@ -25,7 +25,7 @@ def syntaxAnalyzer(tokens):
 
 def syntaxError(message):
     global i, tokenList, errorAt
-    # print(message, f":>> i f{tokenList[i].type}, tokenList f{tokenList[i].value}, errorAt f{errorAt}" )
+    print(message, f":>> i f {tokenList[i].type}, tokenList f {tokenList[i].value}, errorAt f {errorAt}" )
     if (i > errorAt):
         errorAt = i
     return False
@@ -464,10 +464,12 @@ try:
         global i, tokenList
         if tokenList[i].type == "ARRAY":
             i+=1
-            if tokenList[i].type == "ID":
+            if tokenList[i].type == "DT":
                 i += 1
-                dims()
-                array_body()
+                if tokenList[i].type == "ID":
+                    i += 1
+                    dims()
+                    array_body()
         syntaxError("Syntax Error: Missing data type in array declaration")
 
     def dims():
@@ -498,8 +500,16 @@ try:
 
     def array_values():
         global i, tokenList
-        if tokenList[i].type in ["O_BRACK"]: 
+        if tokenList[i].type == "O_BRACK":
             nested_array()
+        else:
+            value_list()
+
+    def nested_array():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            value_list()
             if tokenList[i].type == "C_BRACK":
                 i += 1
         else:
@@ -519,7 +529,7 @@ try:
             if tokenList[i].type == "C_BRACK":
                 i+=1
                 if tokenList[i].type == "SEPARATOR":
-                    value_list()
+                    nested_array()
         else:
             syntaxError("Syntax Error: Missing '[' in nested array")
 
@@ -626,9 +636,9 @@ try:
                     if tokenList[i].type == "O_BRACE":
                         i += 1
                         body()
-                    if tokenList[i].type == "C_BRACE":
-                        i += 1
-                        if_else_tail()
+                        if tokenList[i].type == "C_BRACE":
+                            i += 1
+                            if_else_tail()
                     else:
                         syntaxError(
                             "Syntax Error: Missing ':' after condition in 'check' statement")

@@ -1,6 +1,6 @@
-array arry [1] =  [2]
+array num arry [1] =  [2]
 num a = 9;
-num a = 9;
+num b = 9;
 sealed group A {
     z = 5
 }
@@ -25,10 +25,7 @@ when (a){
     num a = 2;
 }otherwise{
     num a = 2;
-}  
-num a = 9;
-num x = 42;
-
+}
 
 ??attempt{
     num a = 2;
@@ -47,8 +44,6 @@ dict diction = {
 }otherwise{
 
 }??
-
-
 
 when (a){
     num a = 2;

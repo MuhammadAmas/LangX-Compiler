@@ -21,7 +21,7 @@ classifiedToken = classifyToken(breakedWords)
 
 # print(classifiedToken)
 
-print(syntaxAnalyzer(classifiedToken))
+syntaxAnalyzer(classifiedToken)
 
 # print(semanticAnalyzer(classifiedToken))
 

@@ -3,7 +3,7 @@ from lexer import *
 def classifyToken(tokenList):
     keywords = {"void": "VOID","num": "DT", "dec": "DT", "bool": "DT", "string": "DT", "array":"ARRAY", "dict":"DICT", "when": "WHEN", "otherwise": "OTHERWISE", "check": "CHECK",
                 "iterate": "LOOP", "stop": "CONTROL FLOW", "continue": "CONTROL FLOW", "define": "DEFINE", "yield": "YIELD",
-                "show": "PRINT", "take": "INPUT", "attempt": "ATTEMPT", "catch": "CATCH", "group": "GROUP",
+                "show": "PRINT", "take": "INPUT", "attempt": "ATTEMPT", "catch": "CATCH", "finally":"FINALLY", "group": "GROUP", "error": "ERROR",
             "obj": "SELF", "create": "INIT", "base": "SUPER", "true": "BOOL", "false": "BOOL", "~": "EOF", "calling": "CALL_FUNC", "sealed": "SEALED"}
 
     operators = {"=": "ASSIGN", "+=": "COMBO_ASSIGN", "-=": "COMBO_ASSIGN", "++": "INC_DEC", "--": "INC_DEC", "<": "RELATION", ">": "RELATION",

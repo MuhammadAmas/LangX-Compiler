@@ -33,3 +33,13 @@ dict diction = {
 dict diction = {
     a : 'f'
 }
+
+attempt {
+    print("attempt")
+}
+catch(error){
+    print("catch")
+}
+finally{
+    print("finally")
+}

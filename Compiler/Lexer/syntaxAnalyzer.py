@@ -11,6 +11,10 @@ def syntaxAnalyzer(tokens):
     errorAt = 0
     tokenList = tokens
     result = structure()
+    if tokenList[i].type == 'EOF':
+        print("Your code is syntactically correct")
+        return 
+    
     if (not result):
         # print('Syntax error')
         synError += "\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type + \
@@ -25,7 +29,7 @@ def syntaxAnalyzer(tokens):
 
 def syntaxError(message):
     global i, tokenList, errorAt
-    print(message, f":>> i f {tokenList[i].type}, tokenList f {tokenList[i].value}, errorAt f {errorAt}" )
+    # print(message, f":>> i f {tokenList[i].type}, tokenList f {tokenList[i].value}, errorAt f {errorAt}" )
     if (i > errorAt):
         errorAt = i
     return False
@@ -915,19 +919,26 @@ try:
     def try_catch():
         global i , tokenList
         if tokenList[i].type == "ATTEMPT":
+            print("Try catch start")
             i += 1
             if tokenList[i].type == "O_BRACE":
+                print("attempt open")
                 i += 1
                 body()
                 if tokenList[i].type == "C_BRACE":
+                    print("attempt close")
                     i += 1
                     catch_block()
                     if tokenList[i].type == "FINALLY":
+                        print("finally")
                         i += 1
                         if tokenList[i].type == "O_BRACE":
+                            print("finally oepn")
+                            
                             i += 1
                             body()
                             if tokenList[i].type == "C_BRACE":
+                                print("finally close")   
                                 i += 1
                                 return True
         syntaxError(
@@ -936,18 +947,27 @@ try:
     def catch_block():
         global i, tokenList
         if tokenList[i].type == "CATCH":
+            print("catch block")
             i += 1
             if tokenList[i].type == "O_PARAM":
+                print("catch parameter open")
                 i += 1
-                dec()
-                if tokenList[i] == "C_PARAM":
-                    i += 1
-                    if tokenList[i].type == "O_BRACE":
+                if tokenList[i].type == "ERROR":
+                    print("error")
+                    i+=1
+                    if tokenList[i].type == "C_PARAM":
+                        print("catch parameter close")
                         i += 1
-                        body()
-                        if tokenList[i].type == "C_BRACE":
+                        if tokenList[i].type == "O_BRACE":
+                            print("catch block open")
+                            
                             i += 1
-                            return True
+                            body()
+                            if tokenList[i].type == "C_BRACE":
+                                print("catch block  close")
+                                
+                                i += 1
+                                return True
             syntaxError("Syntax Error: Missing '(' in 'catch' block")
         else:
             return True # Epsilon case

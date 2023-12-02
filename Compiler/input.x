@@ -1,4 +1,4 @@
-sealed group A  {
+??sealed group A  {
     z = 5
 }
 
@@ -42,8 +42,9 @@ catch(error){
 }
 finally{
     print("finally")
-}
+}??
 
+num i = 1 / 2
 iterate(num i=0; i<xyz; i++){
     print("iterate")
 }

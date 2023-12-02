@@ -18,8 +18,8 @@ def syntaxAnalyzer(tokens):
                 tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt) + "\n\n\n"
         print("\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type +
               "\n\tFile:\t\'.\\input.txt\' [@ line " + str(tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt))
-    if result:
-        print("Source code is syntactically correct :)")
+    # if result:
+    #     print("Source code is syntactically correct :)")
     return synError, result
 
 
@@ -40,8 +40,8 @@ try:
             structure()
         elif class_def():
             structure()
-        elif func_def():
-            structure()
+        # elif func_def():
+        #     structure()
         syntaxError("Syntax Error: Invalid start rule")
 
     def class_def():
@@ -438,122 +438,206 @@ try:
             dec()
             SST()
         elif tokenList[i].type == "ARRAY":
-            array()
+            multiArr()
             SST()
         elif tokenList[i].type == "ID":
             assign_st()
         elif tokenList[i].type == "CALL_FUNC":
             func_call()
+            SST()
+        elif ((tokenList[i].type == "VOID" or tokenList[i].type == "DT") and tokenList[i+1].type == "DEFINE"):
+            print("checkfunction")
+            func_def()
         elif tokenList[i].type == "INC_DEC":
             inc_dec_st()
         elif tokenList[i].type == "WHEN":
             when_otherwise()
-            # SST()
+            SST()
         elif tokenList[i].type == "LOOP":
             for_loop()
+            SST()
         elif tokenList[i].type == "YIELD":
             yield_exp()
+            SST()
         elif tokenList[i].type == "ATTEMPT":
             try_catch()
+            SST()
         elif tokenList[i].type == "DICT":
             dict_()
+            SST()
 
     # ? ************************* Array *************************
     # Array
-    def array():
-        global i, tokenList
-        if tokenList[i].type == "ARRAY":
-            i+=1
-            if tokenList[i].type == "DT":
-                i += 1
-                if tokenList[i].type == "ID":
-                    i += 1
-                    dims()
-                    array_body()
-        syntaxError("Syntax Error: Missing data type in array declaration")
+    # def array():
+    #     global i, tokenList
+    #     if tokenList[i].type == "ARRAY":
+    #         i+=1
+    #         if tokenList[i].type == "DT":
+    #             i += 1
+    #             if tokenList[i].type == "ID":
+    #                 i += 1
+    #                 dims()
+    #                 array_body()
+    #     syntaxError("Syntax Error: Missing data type in array declaration")
 
-    def dims():
-        global i, tokenList
-        if tokenList[i].type == "O_BRACK":
-            i += 1
-            if tokenList[i].type == "INT":
-                i += 1
-                if tokenList[i].type == "C_BRACK":
-                    i += 1
-                    dims()
-            else:
-                syntaxError("Syntax Error: Missing integer constant for array size")
-        else:
-            return True  # Epsilon case
+    # def dims():
+    #     global i, tokenList
+    #     if tokenList[i].type == "O_BRACK":
+    #         i += 1
+    #         if tokenList[i].type == "INT":
+    #             i += 1
+    #             if tokenList[i].type == "C_BRACK":
+    #                 i += 1
+    #                 dims()
+    #         else:
+    #             syntaxError("Syntax Error: Missing integer constant for array size")
+    #     else:
+    #         return True  # Epsilon case
 
-    def array_body():
+    # def array_body():
+    #     global i, tokenList
+    #     if tokenList[i].type == "ASSIGN":
+    #         i += 1
+    #         if tokenList[i].type == "O_BRACK":
+    #             i += 1
+    #             array_values()
+    #             if tokenList[i].type == "C_BRACK":
+    #                 i += 1
+    #                 return True
+    #     syntaxError("Syntax Error: Missing '=' in array declaration")
+
+    # def array_values():
+    #     global i, tokenList
+    #     if tokenList[i].type == "O_BRACK":
+    #         nested_array()
+    #     else:
+    #         value_list()
+
+    # def nested_array():
+    #     global i, tokenList
+    #     if tokenList[i].type == "O_BRACK":
+    #         i += 1
+    #         value_list()
+    #         if tokenList[i].type == "C_BRACK":
+    #             i += 1
+    #     else:
+    #         value_list()
+
+    # def nested_array():
+    #     global i, tokenList
+    #     if tokenList[i].type == "O_BRACK":
+    #         i += 1
+    #         value_list()
+    #         if tokenList[i].type == "C_BRACK":
+    #             i += 1
+        
+    #     elif tokenList[i].type == "O_BRACK":
+    #         i+=1
+    #         value_list()
+    #         if tokenList[i].type == "C_BRACK":
+    #             i+=1
+    #             if tokenList[i].type == "SEPARATOR":
+    #                 nested_array()
+    #     else:
+    #         syntaxError("Syntax Error: Missing '[' in nested array")
+
+    # def value_list():
+    #     global i, tokenList
+    #     if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+    #         i += 1
+    #         value()
+    #     elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+    #         value()
+    #         if tokenList[i].type == "SEPARATOR":
+    #             i += 1
+    #             value_list()               
+    #     else:
+    #         syntaxError("Syntax Error: Missing value in the value list")
+
+    # def value():
+    #     exp()
+    def multiArr():
         global i, tokenList
-        if tokenList[i].type == "ASSIGN":
+        if (tokenList[i].type == "O_BRACK"):
             i += 1
-            if tokenList[i].type == "O_BRACK":
+            if (tokenList[i].type == "C_BRACK"):
                 i += 1
-                array_values()
-                if tokenList[i].type == "C_BRACK":
+                if (tokenList[i].type == "ID"):
+                    i += 1
+                    return multiArr_()
+        return syntaxError()
+
+    def multiArr_():
+        global i, tokenList
+        if (tokenList[i].type == "TERMINATOR"):
+            i += 1
+            return True
+        elif (tokenList[i].type == "SEPARATOR"):
+            i += 1
+            if (tokenList[i].type == "ID"):
+                i += 1
+                return multiArr_()
+        elif (tokenList[i].type == "ASSIGN"):
+            i += 1
+            if (initMultidim()):
+                return multiArr_()
+        return syntaxError()
+
+    def initMultidim():
+        global i, tokenList
+        if (tokenList[i].type == "ID"):
+            i += 1
+            return True
+        elif (tokenList[i].type == "NEW"):
+            i += 1
+            if (tokenList[i].type == "DICT"):
+                i += 1
+                if (tokenList[i].type == "O_BRACK"):
+                    i += 1
+                    return initMultidim_()
+        return syntaxError()
+
+    def initMultidim_():
+        global i, tokenList
+        if (tokenList[i].type == "C_BRACK"):
+            i += 1
+            if (tokenList[i].type == "O_BRACE"):
+                i += 1
+                if (valMultidim() and tokenList[i].type == "C_BRACE"):
                     i += 1
                     return True
-        syntaxError("Syntax Error: Missing '=' in array declaration")
-
-    def array_values():
-        global i, tokenList
-        if tokenList[i].type == "O_BRACK":
-            nested_array()
-        else:
-            value_list()
-
-    def nested_array():
-        global i, tokenList
-        if tokenList[i].type == "O_BRACK":
+        elif (exp() and tokenList[i].type == "C_BRACK"):
             i += 1
-            value_list()
-            if tokenList[i].type == "C_BRACK":
-                i += 1
-        else:
-            value_list()
+            return True
+        return syntaxError()
 
-    def nested_array():
+    def valMultidim():
         global i, tokenList
-        if tokenList[i].type == "O_BRACK":
+        if (tokenList[i].type == "ID"):
             i += 1
-            value_list()
-            if tokenList[i].type == "C_BRACK":
-                i += 1
-        
-        elif tokenList[i].type == "O_BRACK":
-            i+=1
-            value_list()
-            if tokenList[i].type == "C_BRACK":
-                i+=1
-                if tokenList[i].type == "SEPARATOR":
-                    nested_array()
-        else:
-            syntaxError("Syntax Error: Missing '[' in nested array")
+            return valMultidim_()
+        elif (tokenList[i].type == "C_BRACE"):
+            return True
+        return syntaxError()
 
-    def value_list():
+    def valMultidim_():
         global i, tokenList
-        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+        if (tokenList[i].type == "C_BRACE"):
+            return True
+        elif (tokenList[i].type == "SEPARATOR"):
             i += 1
-            value()
-        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
-            value()
-            if tokenList[i].type == "SEPARATOR":
+            if (tokenList[i].type == "ID"):
                 i += 1
-                value_list()               
-        else:
-            syntaxError("Syntax Error: Missing value in the value list")
-
-    def value():
-        exp()
+                return valMultidim_()
+        return syntaxError()
 
     # ? ************************* Dict *************************
 
     def dict_():
         global i , tokenList
+        print("dictopen")
         if tokenList[i].type == "DICT":
+            print("dictkeyword")
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
@@ -563,6 +647,7 @@ try:
                         i += 1
                         key_value_list()
                         if tokenList[i].type == "C_BRACE":
+                            print("dictclosing")
                             i += 1
                             return True
         syntaxError(
@@ -619,6 +704,7 @@ try:
                         i += 1
                         body()
                         if tokenList[i].type == "C_BRACE":
+                            print('C_BRACE')
                             i += 1
                             
                         if_else_tail()
@@ -690,10 +776,13 @@ try:
 
     def func_def():
         global i, tokenList
-        DT_func()
-        if tokenList[i].type in ["DT", "VOID"]:
+        print("Function Definition")
+        print(tokenList[i].type) 
+        if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
+            print("Function type")
             i+=1
             if tokenList[i].type == "DEFINE":
+                print("Function keyword")
                 i += 1
                 if tokenList[i].type == "ID":
                     i += 1
@@ -706,18 +795,12 @@ try:
                                 i += 1
                                 body()
                                 if tokenList[i].type == "C_BRACE":
+                                    print("fucntionclosing")
                                     i += 1
                                     return True
+                                
         syntaxError(
             "Syntax Error: Missing 'DEFINE' keyword in function definition")
-
-    def DT_func():
-        global i, tokenList
-        if tokenList[i].type in ["VOID", "INT"]:
-            i += 1
-            return True
-        syntaxError(
-            "Syntax Error: Missing return type in function definition")
 
     def args():
         global i, tokenList

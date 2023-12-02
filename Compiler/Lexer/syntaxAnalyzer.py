@@ -1170,7 +1170,7 @@ try:
                 return optF()
         elif (tokenList[i].type == "O_BRACK"):
             i += 1
-            if (expression() and tokenList[i].type == "C_BRACK"):
+            if (exp() and tokenList[i].type == "C_BRACK"):
                 i += 1
                 return optF1()
         elif (tokenList[i].type == "O_PARAN"):
@@ -1213,7 +1213,7 @@ try:
         if (tokenList[i].type == "C_PARAN"):
             return True
         elif (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (expression()):
+            if (exp()):
                 return pl_()
         return syntaxError()
 
@@ -1221,7 +1221,7 @@ try:
         global i, tokenList
         if (tokenList[i].type == "COMMA"):
             i += 1
-            if (expression()):
+            if (exp()):
                 return pl_()
         elif (tokenList[i].type == "C_PARAN"):
             return True

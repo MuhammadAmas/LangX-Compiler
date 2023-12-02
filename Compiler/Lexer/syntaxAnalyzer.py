@@ -434,9 +434,9 @@ try:
     def SST():
         if tokenList[i].type == 'EOF':
             return False
-        elif tokenList[i].type == "DT":
+        elif (tokenList[i].type == "DT" and tokenList[i+1].type != "DEFINE"):
             dec()
-            SST()
+            SST()            
         elif tokenList[i].type == "ARRAY":
             multiArr()
             SST()
@@ -445,9 +445,6 @@ try:
         elif tokenList[i].type == "CALL_FUNC":
             func_call()
             SST()
-        elif ((tokenList[i].type == "VOID" or tokenList[i].type == "DT") and tokenList[i+1].type == "DEFINE"):
-            print("checkfunction")
-            func_def()
         elif tokenList[i].type == "INC_DEC":
             inc_dec_st()
         elif tokenList[i].type == "WHEN":
@@ -465,6 +462,10 @@ try:
         elif tokenList[i].type == "DICT":
             dict_()
             SST()
+        elif (tokenList[i].type in ['DT', 'VOID'] and tokenList[i+1].type == "DEFINE"):
+            func_def()
+            SST()
+                
 
     # ? ************************* Array *************************
     # Array

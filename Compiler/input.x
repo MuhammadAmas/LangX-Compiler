@@ -43,3 +43,7 @@ catch(error){
 finally{
     print("finally")
 }
+
+iterate(num i=0; i<xyz; i++){
+    print("iterate")
+}

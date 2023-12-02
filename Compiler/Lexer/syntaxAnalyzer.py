@@ -16,20 +16,16 @@ def syntaxAnalyzer(tokens):
         return 
     
     if (not result):
-        # print('Syntax error')
         synError += "\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type + \
             "\n\tFile:\t\'.\\input.txt\' [@ " + str(
                 tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt) + "\n\n\n"
         print("\nTOKEN UNEXPECTED:\n\tValue:\t" + tokenList[errorAt].value + "\n\tType:\t" + tokenList[errorAt].type +
               "\n\tFile:\t\'.\\input.txt\' [@ line " + str(tokenList[errorAt].line) + "]\n\tToken:\t" + str(errorAt))
-    # if result:
-    #     print("Source code is syntactically correct :)")
     return synError, result
 
 
 def syntaxError(message):
     global i, tokenList, errorAt
-    # print(message, f":>> i f {tokenList[i].type}, tokenList f {tokenList[i].value}, errorAt f {errorAt}" )
     if (i > errorAt):
         errorAt = i
     return False
@@ -44,8 +40,6 @@ try:
             structure()
         elif class_def():
             structure()
-        # elif func_def():
-        #     structure()
         syntaxError("Syntax Error: Invalid start rule")
 
     def class_def():
@@ -640,9 +634,7 @@ try:
 
     def dict_():
         global i , tokenList
-        print("dictopen")
         if tokenList[i].type == "DICT":
-            print("dictkeyword")
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
@@ -652,7 +644,6 @@ try:
                         i += 1
                         key_value_list()
                         if tokenList[i].type == "C_BRACE":
-                            print("dictclosing")
                             i += 1
                             return True
         syntaxError(
@@ -700,7 +691,6 @@ try:
         if tokenList[i].type == "WHEN":
             i += 1
             if tokenList[i].type == "O_PARAM":
-                print('O_PARAM')
                 i += 1
                 exp()
                 if tokenList[i].type == "C_PARAM":
@@ -709,7 +699,6 @@ try:
                         i += 1
                         body()
                         if tokenList[i].type == "C_BRACE":
-                            print('C_BRACE')
                             i += 1
                             
                         if_else_tail()
@@ -781,13 +770,9 @@ try:
 
     def func_def():
         global i, tokenList
-        print("Function Definition")
-        print(tokenList[i].type) 
         if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
-            print("Function type")
             i+=1
             if tokenList[i].type == "DEFINE":
-                print("Function keyword")
                 i += 1
                 if tokenList[i].type == "ID":
                     i += 1
@@ -800,7 +785,6 @@ try:
                                 i += 1
                                 body()
                                 if tokenList[i].type == "C_BRACE":
-                                    print("fucntionclosing")
                                     i += 1
                                     return True
                                 
@@ -919,26 +903,19 @@ try:
     def try_catch():
         global i , tokenList
         if tokenList[i].type == "ATTEMPT":
-            print("Try catch start")
             i += 1
             if tokenList[i].type == "O_BRACE":
-                print("attempt open")
                 i += 1
                 body()
                 if tokenList[i].type == "C_BRACE":
-                    print("attempt close")
                     i += 1
                     catch_block()
                     if tokenList[i].type == "FINALLY":
-                        print("finally")
                         i += 1
-                        if tokenList[i].type == "O_BRACE":
-                            print("finally oepn")
-                            
+                        if tokenList[i].type == "O_BRACE":                            
                             i += 1
                             body()
                             if tokenList[i].type == "C_BRACE":
-                                print("finally close")   
                                 i += 1
                                 return True
         syntaxError(
@@ -947,25 +924,17 @@ try:
     def catch_block():
         global i, tokenList
         if tokenList[i].type == "CATCH":
-            print("catch block")
             i += 1
             if tokenList[i].type == "O_PARAM":
-                print("catch parameter open")
                 i += 1
                 if tokenList[i].type == "ERROR":
-                    print("error")
                     i+=1
                     if tokenList[i].type == "C_PARAM":
-                        print("catch parameter close")
                         i += 1
-                        if tokenList[i].type == "O_BRACE":
-                            print("catch block open")
-                            
+                        if tokenList[i].type == "O_BRACE":                            
                             i += 1
                             body()
-                            if tokenList[i].type == "C_BRACE":
-                                print("catch block  close")
-                                
+                            if tokenList[i].type == "C_BRACE":                                
                                 i += 1
                                 return True
             syntaxError("Syntax Error: Missing '(' in 'catch' block")

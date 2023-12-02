@@ -943,105 +943,289 @@ try:
 
     # ? ************************* Expression *************************
     # <exp>-> <a> <exp'>
+    # def exp():
+    #     a()
+    #     exp_prime()
+
+    # def exp_prime():
+    #     global i, tokenList
+    #     if tokenList[i].type == "OR":
+    #         i += 1
+    #         a()
+    #         exp_prime()
+
+    # def a():
+    #     r()
+    #     a_prime()
+
+    # def a_prime():
+    #     global i, tokenList
+    #     if tokenList[i].type == "AND":
+    #         i += 1
+    #         r()
+    #         a_prime()
+
+    # def r():
+    #     e()
+    #     r_prime()
+
+    # def r_prime():
+    #     global i, tokenList
+    #     if tokenList[i].type == "RELATION":
+    #         i += 1
+    #         e()
+    #         r_prime()
+
+    # def e():
+    #     t()
+    #     e_prime()
+
+    # def e_prime():
+    #     global i, tokenList
+    #     if tokenList[i].type == "PM":
+    #         i += 1
+    #         t()
+    #         e_prime()
+
+    # def t():
+    #     f()
+    #     t_prime()
+
+    # def t_prime():
+    #     global i, tokenList
+    #     if tokenList[i].type == "M_D_M":
+    #         i += 1
+    #         f()
+    #         t_prime()
+
+    # def f():
+    #     global i, tokenList
+    #     if tokenList[i].type == "ID":
+    #         i += 1
+    #         f_init()
+    #     elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
+    #         i += 1
+    #     elif tokenList[i].type == "NOT":
+    #         i += 1
+    #         f()
+    #     elif tokenList[i].type == "CALLING":
+    #         i += 1
+    #         func_call()
+    #     syntaxError("Syntax Error: Expected ID or literal")
+
+    # def f_init():
+    #     global i, tokenList
+    #     if tokenList[i].type == "O_BRACK":
+    #         i += 1
+    #         exp()
+    #         if tokenList[i].type == "C_BRACK":
+    #             i += 1
+    #             f_init()
+    #     elif tokenList[i].type == "ID":
+    #         i += 1
+    #         f_init()
+    #     elif tokenList[i].type == "INC_DEC":
+    #         i += 1
+    #     else:
+    #         return True
+    # def f_init_tail():
+    #     global i, tokenList
+    #     if tokenList[i].type == "ID":
+    #         i += 1
+    #         f_init()
+    #     elif tokenList[i].type == "O_BRACK":
+    #         i += 1
+    #         exp()
+    #         if tokenList[i].type == "C_BRACK":
+    #             i += 1
+    #             f_init()
+    #     else:
+    #         return True
+
+    def const():
+        global i, tokenList
+        if (tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "CHAR" or tokenList[i].type == "BOOL"):
+            i += 1
+            return True
+        return syntaxError()
+
     def exp():
-        a()
-        exp_prime()
-
-    def exp_prime():
         global i, tokenList
-        if tokenList[i].type == "OR":
-            i += 1
-            a()
-            exp_prime()
+        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
+            if (b() and a_()):
+                return True
+        return syntaxError()
 
-    def a():
-        r()
-        a_prime()
-
-    def a_prime():
+    def a_():
         global i, tokenList
-        if tokenList[i].type == "AND":
+        if (tokenList[i].type == "OR"):
             i += 1
-            r()
-            a_prime()
+            if (b() and a_()):
+                return True
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
 
-    def r():
-        e()
-        r_prime()
-
-    def r_prime():
+    def b():
         global i, tokenList
-        if tokenList[i].type == "RELATION":
+        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
+            if (c() and b_()):
+                return True
+        return syntaxError()
+
+    def b_():
+        global i, tokenList
+        if (tokenList[i].type == "AND"):
             i += 1
-            e()
-            r_prime()
+            if (c() and b_()):
+                return True
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
+
+    def c():
+        global i, tokenList
+        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
+            if (e() and c_()):
+                return True
+        return syntaxError()
+
+    def c_():
+        global i, tokenList
+        if (tokenList[i].type == "R_OP"):
+            i += 1
+            if (e() and c_()):
+                return True
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
 
     def e():
-        t()
-        e_prime()
-
-    def e_prime():
         global i, tokenList
-        if tokenList[i].type == "PM":
+        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
+            if (t() and e_()):
+                return True
+        return syntaxError()
+
+    def e_():
+        global i, tokenList
+        if (tokenList[i].type == "P_M"):
             i += 1
-            t()
-            e_prime()
+            if (t() and e_()):
+                return True
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
 
     def t():
-        f()
-        t_prime()
-
-    def t_prime():
         global i, tokenList
-        if tokenList[i].type == "M_D_M":
+        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
+            if (f() and t_()):
+                return True
+        return syntaxError()
+
+    def t_():
+        global i, tokenList
+        if (tokenList[i].type == "M_D_M"):
             i += 1
-            f()
-            t_prime()
+            if (f() and t_()):
+                return True
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
 
     def f():
         global i, tokenList
-        if tokenList[i].type == "ID":
+        if (tokenList[i].type == "O_PARAN"):
             i += 1
-            f_init()
-        elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
-            i += 1
-        elif tokenList[i].type == "NOT":
-            i += 1
-            f()
-        elif tokenList[i].type == "CALLING":
-            i += 1
-            func_call()
-        syntaxError("Syntax Error: Expected ID or literal")
-
-    def f_init():
-        global i, tokenList
-        if tokenList[i].type == "O_BRACK":
-            i += 1
-            exp()
-            if tokenList[i].type == "C_BRACK":
-                i += 1
-                f_init()
-        elif tokenList[i].type == "ID":
-            i += 1
-            f_init()
-        elif tokenList[i].type == "INC_DEC":
-            i += 1
-        else:
+            if (exp() and tokenList[i].type == "C_PARAN"):
+                return True
+        elif (const()):
             return True
-    def f_init_tail():
-        global i, tokenList
-        if tokenList[i].type == "ID":
+        elif (tokenList[i].type == "EXCLAIM"):
             i += 1
-            f_init()
-        elif tokenList[i].type == "O_BRACK":
+            return f()
+        elif (sp_() and tokenList[i].type == "ID"):
             i += 1
-            exp()
-            if tokenList[i].type == "C_BRACK":
-                i += 1
-                f_init()
-        else:
-            return True
+            return optF()
+        return syntaxError()
 
+    def sp_():
+        global i, tokenList
+        if (tokenList[i].type == "CHAIN"):
+            i += 1
+            if (tokenList[i].type == "TERMINATOR"):
+                i += 1
+                return True
+        elif (tokenList[i].type == "ID"):
+            return True
+        return syntaxError()
+
+    def optF():
+        global i, tokenList
+        if (tokenList[i].type == "TERMINATOR"):
+            i += 1
+            if (tokenList[i].type == "ID"):
+                i += 1
+                return optF()
+        elif (tokenList[i].type == "O_BRACK"):
+            i += 1
+            if (expression() and tokenList[i].type == "C_BRACK"):
+                i += 1
+                return optF1()
+        elif (tokenList[i].type == "O_PARAN"):
+            i += 1
+            if (pl() and tokenList[i].type == "C_PARAN"):
+                i += 1
+                return optF_()
+        elif (tokenList[i].type == "INC_DEC"):
+            i += 1
+            return True
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
+
+    def optF1():
+        global i, tokenList
+        if (tokenList[i].type == "INC_DEC"):
+            i += 1
+            return True
+        if (tokenList[i].type == "TERMINATOR"):
+            i += 1
+            if (tokenList[i].type == "ID"):
+                i += 1
+                return optF()
+        return syntaxError()
+
+    def optF_():
+        global i, tokenList
+        if (tokenList[i].type == "TERMINATOR"):
+            i += 1
+            if (tokenList[i].type == "ID"):
+                i += 1
+                return optF()
+        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
+            return True
+        return syntaxError()
+
+    def pl():
+        global i, tokenList
+        if (tokenList[i].type == "C_PARAN"):
+            return True
+        elif (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
+            if (expression()):
+                return pl_()
+        return syntaxError()
+
+    def pl_():
+        global i, tokenList
+        if (tokenList[i].type == "COMMA"):
+            i += 1
+            if (expression()):
+                return pl_()
+        elif (tokenList[i].type == "C_PARAN"):
+            return True
+        return syntaxError()
     # Function calling
     def func_call():
         global i, tokenList

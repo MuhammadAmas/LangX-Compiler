@@ -4,7 +4,6 @@ tokenList = []
 errorAt = 0
 synError = ""
 
-
 def syntaxAnalyzer(tokens):
     global i, tokenList, errorAt, synError
     i = 0
@@ -24,7 +23,7 @@ def syntaxAnalyzer(tokens):
     return synError, result
 
 
-def syntaxError(message):
+def syntaxError(message='default'):
     global i, tokenList, errorAt
     if (i > errorAt):
         errorAt = i
@@ -230,9 +229,11 @@ try:
     def init_1():
         global i, tokenList
         if tokenList[i].type == "ID":
+            print('entering ISD')
             i += 1
             init_2()
         elif tokenList[i].type in ["STR", "CHAR", "FLT", "INT"]:
+            print('entering number')
             i += 1
             return True
         else:
@@ -258,7 +259,10 @@ try:
                 i += 1
                 init()
                 list_()
+        elif tokenList[i].type in ['M_D_M', 'PM', 'RELATION']:
+            exp()
         else:
+            print('giving errr')
             syntaxError("Syntax Error")
 
     def list_1():
@@ -270,6 +274,7 @@ try:
         else:
             return True
 
+
     # ? ************************* iterate *************************
     # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
 
@@ -280,8 +285,9 @@ try:
             if tokenList[i].type == "O_PARAM":
                 i += 1
                 for_loop_init()
-                print("condition in first param")
+                print("condition in first param", tokenList[i].type)
                 if tokenList[i].type == "TERMINATOR":
+                    print('terninatiing in for lopp')
                     i += 1
                     cond()
                     print("condition")
@@ -327,7 +333,7 @@ try:
 
     def cond():
         global i, tokenList
-        print("condition")
+        print("cond in condition", tokenList[i].value, tokenList[i+1].value)
 
         if tokenList[i].type in ["ID", "INT", "FLT", "STR","CHAR","NOT"]:
             exp()
@@ -435,13 +441,15 @@ try:
     # <SST> → <dec> | <when_otherwise> | <iterate_st> | <assign_st> | <inc_dec_st> | <return_st> | <fn_call> | <try_catch> | <dict> | <array>
 
     def SST():
+        print('entering sst')
         if tokenList[i].type == 'EOF':
             return False
         elif (tokenList[i].type == "DT" and tokenList[i+1].type != "DEFINE"):
+            print('entering dt')
             dec()
             SST()            
         elif tokenList[i].type == "ARRAY":
-            multiArr()
+            array()
             SST()
         elif tokenList[i].type == "ID":
             assign_st()
@@ -471,170 +479,95 @@ try:
                 
 
     # ? ************************* Array *************************
-    # Array
-    # def array():
-    #     global i, tokenList
-    #     if tokenList[i].type == "ARRAY":
-    #         i+=1
-    #         if tokenList[i].type == "DT":
-    #             i += 1
-    #             if tokenList[i].type == "ID":
-    #                 i += 1
-    #                 dims()
-    #                 array_body()
-    #     syntaxError("Syntax Error: Missing data type in array declaration")
-
-    # def dims():
-    #     global i, tokenList
-    #     if tokenList[i].type == "O_BRACK":
-    #         i += 1
-    #         if tokenList[i].type == "INT":
-    #             i += 1
-    #             if tokenList[i].type == "C_BRACK":
-    #                 i += 1
-    #                 dims()
-    #         else:
-    #             syntaxError("Syntax Error: Missing integer constant for array size")
-    #     else:
-    #         return True  # Epsilon case
-
-    # def array_body():
-    #     global i, tokenList
-    #     if tokenList[i].type == "ASSIGN":
-    #         i += 1
-    #         if tokenList[i].type == "O_BRACK":
-    #             i += 1
-    #             array_values()
-    #             if tokenList[i].type == "C_BRACK":
-    #                 i += 1
-    #                 return True
-    #     syntaxError("Syntax Error: Missing '=' in array declaration")
-
-    # def array_values():
-    #     global i, tokenList
-    #     if tokenList[i].type == "O_BRACK":
-    #         nested_array()
-    #     else:
-    #         value_list()
-
-    # def nested_array():
-    #     global i, tokenList
-    #     if tokenList[i].type == "O_BRACK":
-    #         i += 1
-    #         value_list()
-    #         if tokenList[i].type == "C_BRACK":
-    #             i += 1
-    #     else:
-    #         value_list()
-
-    # def nested_array():
-    #     global i, tokenList
-    #     if tokenList[i].type == "O_BRACK":
-    #         i += 1
-    #         value_list()
-    #         if tokenList[i].type == "C_BRACK":
-    #             i += 1
-        
-    #     elif tokenList[i].type == "O_BRACK":
-    #         i+=1
-    #         value_list()
-    #         if tokenList[i].type == "C_BRACK":
-    #             i+=1
-    #             if tokenList[i].type == "SEPARATOR":
-    #                 nested_array()
-    #     else:
-    #         syntaxError("Syntax Error: Missing '[' in nested array")
-
-    # def value_list():
-    #     global i, tokenList
-    #     if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
-    #         i += 1
-    #         value()
-    #     elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
-    #         value()
-    #         if tokenList[i].type == "SEPARATOR":
-    #             i += 1
-    #             value_list()               
-    #     else:
-    #         syntaxError("Syntax Error: Missing value in the value list")
-
-    # def value():
-    #     exp()
-    def multiArr():
+    def array():
         global i, tokenList
-        if (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
+        if tokenList[i].type == "ARRAY":
+            i+=1
+            if tokenList[i].type == "DT":
                 i += 1
-                if (tokenList[i].type == "ID"):
+                if tokenList[i].type == "ID":
                     i += 1
-                    return multiArr_()
-        return syntaxError()
+                    dims()
+                    array_body()
+        syntaxError("Syntax Error: Missing data type in array declaration")
 
-    def multiArr_():
+    def dims():
         global i, tokenList
-        if (tokenList[i].type == "TERMINATOR"):
+        if tokenList[i].type == "O_BRACK":
             i += 1
-            return True
-        elif (tokenList[i].type == "SEPARATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
+            if tokenList[i].type == "INT":
                 i += 1
-                return multiArr_()
-        elif (tokenList[i].type == "ASSIGN"):
-            i += 1
-            if (initMultidim()):
-                return multiArr_()
-        return syntaxError()
-
-    def initMultidim():
-        global i, tokenList
-        if (tokenList[i].type == "ID"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "DICT"):
-                i += 1
-                if (tokenList[i].type == "O_BRACK"):
+                if tokenList[i].type == "C_BRACK":
                     i += 1
-                    return initMultidim_()
-        return syntaxError()
+                    dims()
+            else:
+                syntaxError("Syntax Error: Missing integer constant for array size")
+        else:
+            return True  # Epsilon case
 
-    def initMultidim_():
+    def array_body():
         global i, tokenList
-        if (tokenList[i].type == "C_BRACK"):
+        if tokenList[i].type == "ASSIGN":
             i += 1
-            if (tokenList[i].type == "O_BRACE"):
+            if tokenList[i].type == "O_BRACK":
                 i += 1
-                if (valMultidim() and tokenList[i].type == "C_BRACE"):
+                array_values()
+                if tokenList[i].type == "C_BRACK":
                     i += 1
                     return True
-        elif (exp() and tokenList[i].type == "C_BRACK"):
-            i += 1
-            return True
-        return syntaxError()
+        syntaxError("Syntax Error: Missing '=' in array declaration")
 
-    def valMultidim():
+    def array_values():
         global i, tokenList
-        if (tokenList[i].type == "ID"):
-            i += 1
-            return valMultidim_()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
+        if tokenList[i].type == "O_BRACK":
+            nested_array()
+        else:
+            value_list()
 
-    def valMultidim_():
+    def nested_array():
         global i, tokenList
-        if (tokenList[i].type == "C_BRACE"):
-            return True
-        elif (tokenList[i].type == "SEPARATOR"):
+        if tokenList[i].type == "O_BRACK":
             i += 1
-            if (tokenList[i].type == "ID"):
+            value_list()
+            if tokenList[i].type == "C_BRACK":
                 i += 1
-                return valMultidim_()
-        return syntaxError()
+        else:
+            value_list()
 
+    def nested_array():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            value_list()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+        
+        elif tokenList[i].type == "O_BRACK":
+            i+=1
+            value_list()
+            if tokenList[i].type == "C_BRACK":
+                i+=1
+                if tokenList[i].type == "SEPARATOR":
+                    nested_array()
+        else:
+            syntaxError("Syntax Error: Missing '[' in nested array")
+
+    def value_list():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            i += 1
+            value()
+        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            value()
+            if tokenList[i].type == "SEPARATOR":
+                i += 1
+                value_list()               
+        else:
+            syntaxError("Syntax Error: Missing value in the value list")
+
+    def value():
+        exp()
+    
     # ? ************************* Dict *************************
 
     def dict_():
@@ -948,104 +881,105 @@ try:
 
     # ? ************************* Expression *************************
     # <exp>-> <a> <exp'>
-    # def exp():
-    #     a()
-    #     exp_prime()
+    def exp():
+        a()
+        exp_prime()
 
-    # def exp_prime():
-    #     global i, tokenList
-    #     if tokenList[i].type == "OR":
-    #         i += 1
-    #         a()
-    #         exp_prime()
+    def exp_prime():
+        global i, tokenList
+        if tokenList[i].type == "OR":
+            i += 1
+            a()
+            exp_prime()
 
-    # def a():
-    #     r()
-    #     a_prime()
+    def a():
+        r()
+        a_prime()
 
-    # def a_prime():
-    #     global i, tokenList
-    #     if tokenList[i].type == "AND":
-    #         i += 1
-    #         r()
-    #         a_prime()
+    def a_prime():
+        global i, tokenList
+        if tokenList[i].type == "AND":
+            i += 1
+            r()
+            a_prime()
 
-    # def r():
-    #     e()
-    #     r_prime()
+    def r():
+        e()
+        r_prime()
 
-    # def r_prime():
-    #     global i, tokenList
-    #     if tokenList[i].type == "RELATION":
-    #         i += 1
-    #         e()
-    #         r_prime()
+    def r_prime():
+        global i, tokenList
+        if tokenList[i].type == "RELATION":
+            i += 1
+            e()
+            r_prime()
 
-    # def e():
-    #     t()
-    #     e_prime()
+    def e():
+        t()
+        e_prime()
 
-    # def e_prime():
-    #     global i, tokenList
-    #     if tokenList[i].type == "PM":
-    #         i += 1
-    #         t()
-    #         e_prime()
+    def e_prime():
+        global i, tokenList
+        if tokenList[i].type == "PM":
+            i += 1
+            t()
+            e_prime()
 
-    # def t():
-    #     f()
-    #     t_prime()
+    def t():
+        f()
+        t_prime()
 
-    # def t_prime():
-    #     global i, tokenList
-    #     if tokenList[i].type == "M_D_M":
-    #         i += 1
-    #         f()
-    #         t_prime()
+    def t_prime():
+        global i, tokenList
+        if tokenList[i].type == "M_D_M":
+            i += 1
+            f()
+            t_prime()
 
-    # def f():
-    #     global i, tokenList
-    #     if tokenList[i].type == "ID":
-    #         i += 1
-    #         f_init()
-    #     elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
-    #         i += 1
-    #     elif tokenList[i].type == "NOT":
-    #         i += 1
-    #         f()
-    #     elif tokenList[i].type == "CALLING":
-    #         i += 1
-    #         func_call()
-    #     syntaxError("Syntax Error: Expected ID or literal")
+    def f():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
+            i += 1
+        elif tokenList[i].type == "NOT":
+            i += 1
+            f()
+        elif tokenList[i].type == "CALLING":
+            i += 1
+            func_call()
+        syntaxError("Syntax Error: Expected ID or literal")
 
-    # def f_init():
-    #     global i, tokenList
-    #     if tokenList[i].type == "O_BRACK":
-    #         i += 1
-    #         exp()
-    #         if tokenList[i].type == "C_BRACK":
-    #             i += 1
-    #             f_init()
-    #     elif tokenList[i].type == "ID":
-    #         i += 1
-    #         f_init()
-    #     elif tokenList[i].type == "INC_DEC":
-    #         i += 1
-    #     else:
-    #         return True
-    # def f_init_tail():
-    #     global i, tokenList
-    #     if tokenList[i].type == "ID":
-    #         i += 1
-    #         f_init()
-    #     elif tokenList[i].type == "O_BRACK":
-    #         i += 1
-    #         exp()
-    #         if tokenList[i].type == "C_BRACK":
-    #             i += 1
-    #             f_init()
-    #     else:
-    #         return True
+    def f_init():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                f_init()
+        elif tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type == "INC_DEC":
+            print('incrementing')
+            i += 1
+        else:
+            return True
+    def f_init_tail():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                f_init()
+        else:
+            return True
 
     def const():
         global i, tokenList
@@ -1054,184 +988,6 @@ try:
             return True
         return syntaxError("Syntax error: constant missing")
 
-    def exp():
-        global i, tokenList
-        print("exp open")
-        if (tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (b() and a_()):
-                return True
-        return syntaxError("Syntax error: constant missing")
-
-    def a_():
-        global i, tokenList
-        if (tokenList[i].type == "OR"):
-            i += 1
-            if (b() and a_()):
-                return True
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def b():
-        global i, tokenList
-        if (tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (c() and b_()):
-                return True
-        return syntaxError("Syntax error: constant missing")
-
-    def b_():
-        global i, tokenList
-        if (tokenList[i].type == "AND"):
-            i += 1
-            if (c() and b_()):
-                return True
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def c():
-        global i, tokenList
-        if (tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (e() and c_()):
-                return True
-        return syntaxError("Syntax error: constant missing")
-
-    def c_():
-        global i, tokenList
-        if (tokenList[i].type == "RELATION"):
-            i += 1
-            if (e() and c_()):
-                return True
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def e():
-        global i, tokenList
-        if (tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (t() and e_()):
-                return True
-        return syntaxError("Syntax error: constant missing")
-
-    def e_():
-        global i, tokenList
-        if (tokenList[i].type == "PM"):
-            i += 1
-            if (t() and e_()):
-                return True
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def t():
-        global i, tokenList
-        if (tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (f() and t_()):
-                return True
-        return syntaxError("Syntax error: constant missing")
-
-    def t_():
-        global i, tokenList
-        if (tokenList[i].type == "M_D_M"):
-            i += 1
-            if (f() and t_()):
-                return True
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def f():
-        global i, tokenList
-        if (tokenList[i].type == "O_PARAM"):
-            i += 1
-            if (exp() and tokenList[i].type == "C_PARAM"):
-                return True
-        elif (const()):
-            return True
-        elif (tokenList[i].type == "EXCLAIM"):
-            i += 1
-            return f()
-        elif (sp_() and tokenList[i].type == "ID"):
-            i += 1
-            return optF()
-        return syntaxError("Syntax error: constant missing")
-
-    def sp_():
-        global i, tokenList
-        if (tokenList[i].type == "CHAIN"):
-            i += 1
-            if (tokenList[i].type == "TERMINATOR"):
-                i += 1
-                return True
-        elif (tokenList[i].type == "ID"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def optF():
-        global i, tokenList
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return optF()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (exp() and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return optF1()
-        elif (tokenList[i].type == "O_PARAM"):
-            i += 1
-            if (pl() and tokenList[i].type == "C_PARAM"):
-                i += 1
-                return optF_()
-        elif (tokenList[i].type == "INC_DEC"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def optF1():
-        global i, tokenList
-        if (tokenList[i].type == "INC_DEC"):
-            i += 1
-            return True
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return optF()
-        return syntaxError("Syntax error: constant missing")
-
-    def optF_():
-        global i, tokenList
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return optF()
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAM" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return True
-        return syntaxError("Syntax error: constant missing")
-
-    def pl():
-        global i, tokenList
-        if (tokenList[i].type == "C_PARAM"):
-            return True
-        elif (tokenList[i].type == "O_PARAM" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            if (exp()):
-                return pl_()
-        return syntaxError("Syntax error: constant missing")
-
-    def pl_():
-        global i, tokenList
-        if (tokenList[i].type == "COMMA"):
-            i += 1
-            if (exp()):
-                return pl_()
-        elif (tokenList[i].type == "C_PARAM"):
-            return True
-        return syntaxError("Syntax error: constant missing")
     # Function calling
     def func_call():
         global i, tokenList
@@ -1250,7 +1006,7 @@ try:
         exp()
         param2()
 
-    def param2():
+    def param2():   
         global i, tokenList
         if tokenList[i].type == "SEPARATOR":
             i += 1

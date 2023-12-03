@@ -44,7 +44,5 @@ finally{
     print("finally")
 }??
 
-num i = 1 / 2
-iterate(num i=0; i<xyz; i++){
-    print("iterate")
-}
+
+iterate(num i=0; i<xyz; i--){}

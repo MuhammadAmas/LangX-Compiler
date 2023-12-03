@@ -289,36 +289,37 @@ try:
                 if tokenList[i].type == "TERMINATOR":
                     print('terninatiing in for lopp')
                     i += 1
-                    cond()
+                    inc_dec_st()
                     print("condition")
 
-                    if tokenList[i].type == "TERMINATOR":
+                    # if tokenList[i].type == "TERMINATOR":
+                    #     i += 1
+                    #     update()
+                    if tokenList[i].type == "C_PARAM":
                         i += 1
-                        update()
-                        if tokenList[i].type == "C_PARAM":
+                        if tokenList[i].type == "O_BRACE":
                             i += 1
-                            if tokenList[i].type == "O_BRACE":
+                            body()
+                            print("before closing brace")
+                            if tokenList[i].type == "C_BRACE":
+                                print("after closing brace")
                                 i += 1
-                                body()
-                                if tokenList[i].type == "C_BRACE":
-                                    i += 1
-                                    return True
-                                else:
-                                    syntaxError(
-                                        "Syntax Error: Missing '}'")
+                                return True
                             else:
-                                syntaxError("Syntax Error: Missing '{'")
+                                syntaxError(
+                                    "Syntax Error: Missing '}'")
                         else:
-                            syntaxError("Syntax Error: Missing ')'")
+                            syntaxError("Syntax Error: Missing '{'")
                     else:
-                        syntaxError("Syntax Error: Missing ';'")
+                        syntaxError("Syntax Error: Missing ')'")
                 else:
-                    syntaxError(
-                        "Syntax Error: Missing ';' after condition")
+                    syntaxError("Syntax Error: Missing ';'")
             else:
-                syntaxError("Syntax Error: Missing '('")
+                syntaxError("Syntax Error: Missing ';' after condition")
         else:
-            syntaxError("Syntax Error: Missing 'ITERATE'")
+            syntaxError("Syntax Error: Missing '('")
+    # else:
+    #     syntaxError("Syntax Error: Missing 'ITERATE'")
 
     # <init> → <dec> | <assign_st> | E
 

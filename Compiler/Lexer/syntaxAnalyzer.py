@@ -41,6 +41,8 @@ try:
             structure()
         syntaxError("Syntax Error: Invalid start rule")
 
+    # ? ************************* CLASS DEFINITION *************************
+
     def class_def():
         global i, tokenList
         if tokenList[i].type == "SEALED":
@@ -55,6 +57,8 @@ try:
                         if tokenList[i].type == "C_BRACE":
                             i += 1
                             return True
+                        
+    # ? ************************* Inheritance *************************
         elif tokenList[i].type == "GROUP":
             i += 1
             if tokenList[i].type.type == "ID":
@@ -68,18 +72,19 @@ try:
                         return True
         return False
 
-    # ? ************************* Inheritance *************************
     def inheritance():
         global i, tokenList
-        if tokenList[i].type == "extends":
+        if tokenList[i].type == "EXTENDS":
             i += 1
             if tokenList[i].type.type == "ID":
                 i += 1
-        elif tokenList[i].type == "implements":
+                return True
+        elif tokenList[i].type == "IMPLEMENTS":
             i += 1
             if tokenList[i].type.type == "ID":
                 i += 1
-                inheritance_2()
+                if inheritance_2():
+                    return True
         else:
             return True # Epsilon case
 
@@ -95,17 +100,14 @@ try:
 
     def class_body():
         global i, tokenList
-        XMST()
+        if tokenList[i].type in ["ID", "#", "CONSTRUCTOR","METHOD"]:
+            if C_ST():
+                if C_MT():
+                    return True
 
-    def XMST():
-        global i, tokenList
-        if tokenList[i].type in ["ID", "#", "constructor", "method"]:
-            XSST()
-            XMST()
-        else:
-            return True # Epsilon case
-
-    def XSST():
+    # ? ************************* CLASS SINGLE STATEMENT *************************
+    
+    def C_ST():
         global i, tokenList
         if tokenList[i].type == "ID":
             i += 1
@@ -119,22 +121,57 @@ try:
                 init()
                 if tokenList[i].type == "TERMINATOR":
                     i += 1
-        elif tokenList[i].type == "constructor":
-            i += 1
-            if tokenList[i].type == "O_PARAM":
-                i += 1
-                params()
-                if tokenList[i].type == "C_PARAM":
+        elif tokenList[i].type == "METHOD":
+            if method():
+                if tokenList[i].type == "O_BRACE":
                     i += 1
-                    if tokenList[i].type == "O_BRACE":
-                        i += 1
-                        MST()
-                        if tokenList[i].type == "C_BRACE":
-                            i += 1
-                            return True
+                    MST()
+                    if tokenList[i].type == "C_BRACE":
+                        return True
+        elif tokenList[i].type == "CONSTRUCTOR":
+            if constructor():
+                return True
         else:
-            return True # Epsilon case
+            return False
 
+    # ? ************************* CLASS METHOD *************************
+
+    def method():
+        global i, tokenList
+        if method_header():
+            i += 1
+            if tokenList[i].type == "O_BRACE":
+                i += 1
+                MST()
+                if tokenList[i].type == "C_BRACE":
+                    return True
+
+    def method_header():
+        global tokenList, i
+        if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
+            i+=1
+            if tokenList[i].type == "METHOD":
+                i += 1
+                method_next()
+                i += 1
+                if tokenList[i].type == "O_PARAM":
+                    params()
+                    i += 1
+                    if tokenList[i].type == "C_PARAM":
+                        return True
+        return False
+
+    def method_next():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+        elif tokenList[i].type == "#":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                return True
+        return False
+           
     def params():
         global i, tokenList
         if tokenList[i].type == "ID":
@@ -153,11 +190,40 @@ try:
         else:
             return True # Epsilon case
 
+    # ? ************************* CLASS CONSTRUCTOR *************************
+
+    def constructor():
+        global i, tokenList
+        if tokenList[i].type == "CONSTRUCTOR":
+            i += 1
+            if tokenList[i].type == "O_PARAM":
+                i += 1
+                params()
+                if tokenList[i].type == "C_PARAM":
+                    i += 1
+                    if tokenList[i].type == "O_BRACE":
+                        i += 1
+                        MST()
+                        if tokenList[i].type == "C_BRACE":
+                            i += 1
+                            return True
+
+    # ? ************************* CLASS MULTI STATEMENT *************************
+
+    def C_MT():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "#", "constructor", "method"]:
+            if C_ST():
+                if C_MT():
+                    return True 
+        else:
+            return False 
+
     # ? ************************* Interfaces *************************
 
     def interface():
         global i, tokenList
-        if tokenList[i].type == "interface":
+        if tokenList[i].type == "INTERFACE":
             i += 1
             if tokenList[i].type == "ID":
                 i += 1
@@ -171,8 +237,8 @@ try:
 
     def interface_body():
         global i, tokenList
-        if tokenList[i].type in ["ID", "constructor", "method"]:
-            method_sign()
+        if tokenList[i].type == "METHOD":
+            method_header()
             if tokenList[i].type == "TERMINATOR":
                 i += 1
                 interface_body_2()
@@ -181,29 +247,14 @@ try:
 
     def interface_body_2():
         global i, tokenList
-        if tokenList[i].type in ["ID", "constructor", "method"]:
-            method_sign()
+        if tokenList[i].type in "METHOD":
+            method_header()
+            i += 1
             if tokenList[i].type == "TERMINATOR":
                 i += 1
                 interface_body_2()
         else:
             return True # Epsilon case
-
-    def method_sign():
-        global i, tokenList
-        if tokenList[i].type in ["constructor", "method"]:
-            i += 1
-            if tokenList[i].type.type == "ID":
-                i += 1
-                if tokenList[i].type == "O_PARAM":
-                    i += 1
-                    params()
-                    if tokenList[i].type == "C_PARAM":
-                        i += 1
-                        return True
-        else:
-            return True # Epsilon case
-
     # ? ************************* Decleration *************************
     def dec():
         global i, tokenList

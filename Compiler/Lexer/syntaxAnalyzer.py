@@ -61,7 +61,7 @@ try:
     # ? ************************* Inheritance *************************
         elif tokenList[i].type == "GROUP":
             i += 1
-            if tokenList[i].type.type == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 inheritance()
                 if tokenList[i].type == "O_BRACE":
@@ -76,12 +76,12 @@ try:
         global i, tokenList
         if tokenList[i].type == "EXTENDS":
             i += 1
-            if tokenList[i].type.type == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 return True
         elif tokenList[i].type == "IMPLEMENTS":
             i += 1
-            if tokenList[i].type.type == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 if inheritance_2():
                     return True
@@ -92,7 +92,7 @@ try:
         global i, tokenList
         if tokenList[i].type == "SEPARATOR":
             i += 1
-            if tokenList[i].type.type == "ID":
+            if tokenList[i].type == "ID":
                 i += 1
                 inheritance_2()
         else:
@@ -101,6 +101,7 @@ try:
     def class_body():
         global i, tokenList
         if tokenList[i].type in ["ID", "#", "CONSTRUCTOR","METHOD"]:
+            print('kuchhhhh', tokenList[i].value)
             if C_ST():
                 if C_MT():
                     return True
@@ -122,12 +123,9 @@ try:
                 if tokenList[i].type == "TERMINATOR":
                     i += 1
         elif tokenList[i].type == "METHOD":
+            print('reading methof in class stat')
             if method():
-                if tokenList[i].type == "O_BRACE":
-                    i += 1
-                    MST()
-                    if tokenList[i].type == "C_BRACE":
-                        return True
+                return True
         elif tokenList[i].type == "CONSTRUCTOR":
             if constructor():
                 return True
@@ -137,46 +135,40 @@ try:
     # ? ************************* CLASS METHOD *************************
 
     def method():
+        print('entering methods')
         global i, tokenList
         if method_header():
             i += 1
             if tokenList[i].type == "O_BRACE":
                 i += 1
                 MST()
+                print('jo bhi kara dia', tokenList[i].value)
                 if tokenList[i].type == "C_BRACE":
+                    i+=1
                     return True
 
     def method_header():
         global tokenList, i
-        if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
+        if (tokenList[i].type == "METHOD" ):
             i+=1
-            if tokenList[i].type == "METHOD":
-                i += 1
-                method_next()
-                i += 1
-                if tokenList[i].type == "O_PARAM":
-                    params()
-                    i += 1
-                    if tokenList[i].type == "C_PARAM":
-                        return True
-        return False
-
-    def method_next():
-        global i, tokenList
-        if tokenList[i].type == "ID":
-            i += 1
-        elif tokenList[i].type == "#":
-            i += 1
-            if tokenList[i].type == "ID":
-                i += 1
-                return True
+            if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
+                i+=1
+                if tokenList[i].type == "ID":
+                    i+=1
+                    if tokenList[i].type == "O_PARAM":
+                        i+=1
+                        params()
+                        if tokenList[i].type == "C_PARAM":
+                            return True
         return False
            
     def params():
         global i, tokenList
-        if tokenList[i].type == "ID":
-            i += 1
-            params2()
+        if tokenList[i].type == "DT":
+            i+=1
+            if tokenList[i].type == "ID":
+                i += 1
+                params2()
         else:
             return True # Epsilon case
 
@@ -184,9 +176,11 @@ try:
         global i, tokenList
         if tokenList[i].type == "SEPARATOR":
             i += 1
-            if tokenList[i].type == "ID":
-                i += 1
-                params2()
+            if tokenList[i].type == "DT":
+                i+=1
+                if tokenList[i].type == "ID":
+                    i += 1
+                    params2()
         else:
             return True # Epsilon case
 
@@ -212,8 +206,10 @@ try:
 
     def C_MT():
         global i, tokenList
-        if tokenList[i].type in ["ID", "#", "constructor", "method"]:
+        if tokenList[i].type in ["ID", "#", "CONSTRUCTOR", "METHOD"]:
+            print(tokenList[i].type, '-------------------')
             if C_ST():
+                print('aa jaaa')
                 if C_MT():
                     return True 
         else:
@@ -527,7 +523,9 @@ try:
         elif (tokenList[i].type in ['DT', 'VOID'] and tokenList[i+1].type == "DEFINE"):
             func_def()
             SST()
-                
+        # elif tokenList[i].type in ['METHOD', "CONSTRUCTOR"]:
+        #     class_body()
+        #     SST()    
 
     # ? ************************* Array *************************
     def array():

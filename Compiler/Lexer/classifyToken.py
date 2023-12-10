@@ -7,7 +7,7 @@ def classifyToken(tokenList):
                 "attempt": "ATTEMPT", "catch": "CATCH", "finally":"FINALLY", "group": "GROUP", "error": "ERROR",
                 "obj": "SELF", "create": "INIT", "base": "SUPER", "true": "BOOL", "false": "BOOL", "~": "EOF", 
                 "calling": "CALL_FUNC", "sealed": "SEALED", "construct":"CONSTRUCTOR", "method":"METHOD",
-                "extends:" : "EXTENDS", "implements:" : "IMPLEMENTS"}
+                "extends" : "EXTENDS", "implements:" : "IMPLEMENTS"}
 
     operators = {"=": "ASSIGN", "+=": "COMBO_ASSIGN", "-=": "COMBO_ASSIGN", "++": "INC_DEC", "--": "INC_DEC", "<": "RELATION", ">": "RELATION",
                  "==": "RELATION", "<=": "RELATION", ">=": "RELATION", "!=": "RELATION", "and": "AND", "or": "OR", "not": "NOT",

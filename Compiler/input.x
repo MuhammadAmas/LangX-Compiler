@@ -1,4 +1,27 @@
-??sealed group A  {
+sealed group animal{
+    construct(num a, num b){
+        num x = a;
+    }
+    method void method1(num x, dec y) {
+        num x = a;
+    }
+     method bool method2(num x, dec y) {
+        num x = a;
+    }
+   
+}
+
+group id extends id{
+    construct(num a, num b){
+        num x = a;
+    }
+     method bool method2(num x, dec y) {
+        num x = a;
+    }
+}
+
+
+sealed group A  {
     z = 5
 }
 
@@ -42,7 +65,10 @@ catch(error){
 }
 finally{
     print("finally")
-}??
+}
 
 
 iterate(num i=0; i<xyz; i--){}
+
+
+

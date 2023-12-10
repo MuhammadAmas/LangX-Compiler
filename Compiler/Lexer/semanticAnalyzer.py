@@ -1,9 +1,3 @@
-# import sys
-
-from Token import Token
-from semanticFunctions import createScope, destroyScope, insertAttribute, insertFunctionTable, insertMainTable, lookupAttributeTable, lookupFunctionTable, lookupMainTable, scopeStack_, binTypeCompatible, uniTypeCompatible, mainTable_, functionTable_
-
-
 i = 0
 tokenList = []
 # syntaxErr = True
@@ -108,2945 +102,1041 @@ def checkConstructor(check):
         return False
     return True
 
-
 try:
-
     def structure():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "STATIC"):
-            typeMod = tokenList[i].type
-            i += 1
-            if (tokenList[i].type == "CLASS"):
-                entryOf = tokenList[i].type
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    parent, check = inherit()
-                    if (check):
-                        check = insertMainTable(name, entryOf, typeMod, parent)
-                        if (check == False):
-                            reDeclarationError(name, "Static Class")
-                            return False
-                        currentClass = name
-                        if (tokenList[i].type == "O_BRACE"):
-                            currentScope = createScope()
-                            i += 1
-                            check = sCst()
-                            if (check):
-                                if (tokenList[i].type == "EOF"):
-                                    return True
-        elif (tokenList[i].type == "CONDENSED"):
-            typeMod = tokenList[i].type
-            i += 1
-            if (tokenList[i].type == "CLASS"):
-                entryOf = tokenList[i].type
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    parent, check = inherit()
-                    if (check):
-                        check = insertMainTable(name, entryOf, typeMod, parent)
-                        if (check == False):
-                            reDeclarationError(name, "Condensed Class")
-                            return False
-                        currentClass = name
-                        if (tokenList[i].type == "O_BRACE"):
-                            currentScope = createScope()
-                            i += 1
-                            check = cCst()
-                            if (check):
-                                if (tokenList[i].type == "EOF"):
-                                    return True
-        else:
-            typeMod, check = concrete_()
-            if (check and tokenList[i].type == "CLASS"):
-                entryOf = tokenList[i].type
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    parent, check = inherit()
-                    if (check):
-                        check = insertMainTable(name, entryOf, typeMod, parent)
-                        if (check == False):
-                            reDeclarationError(name, "General Class")
-                            return False
-                        currentClass = name
-                        if (tokenList[i].type == "O_BRACE"):
-                            currentScope = createScope()
-                            i += 1
-                            check = gCst()
-                            if (check):
-                                if (tokenList[i].type == "EOF"):
-                                    return True
-            elif (tokenList[i].type == "SYMBOL"):
-                entryOf = tokenList[i].type
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    check = insertMainTable(name, entryOf, "", "")
-                    if (check == False):
-                        reDeclarationError(name, "Symbol")
-                        return False
-                    currentClass = name
-                    if (tokenList[i].type == "O_BRACE"):
-                        currentScope = createScope()
-                        i += 1
-                        check = intSt()
-                        if (check):
-                            if (tokenList[i].type == "C_BRACE"):
-                                currentScope = destroyScope()
-                                i += 1
-                                check = structure()
-                                if (check):
-                                    if (tokenList[i].type == "EOF"):
-                                        return True
-        return syntaxError()
-
-    def sCst():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            currentScope = destroyScope()
-            i += 1
-            check = lookupMainTable(currentClass)
-            check = checkConstructor(check)
-            if (check):
-                return structure()
-        elif (tokenList[i].type == "FUNCTION"):
-            i += 1
-            accessMod, check = pubPriv_()
-            if (check):
-                if (tokenList[i].type == "STATIC"):
-                    static = 1
-                    i += 1
-                    check = functionSig(accessMod, static, "")
-                    if (check):
-                        return sCst()
-        elif (tokenList[i].type == "PRIVATE"):
-            accessMod = tokenList[i].type
-            i += 1
-            if (tokenList[i].type == "STATIC"):
-                stat = tokenList[i].type
-                i += 1
-            check = classVars(accessMod, stat, "")
-            if (check):
-                return sCst()
-        else:
-            accessMod, check = public_()
-            if (check and tokenList[i].type == "STATIC"):
-                static = tokenList[i].type
-                i += 1
-                return sCst_(accessMod, static)
-        return syntaxError()
-
-    def public_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        accessMod = "PUBLIC"
-        if (tokenList[i].type == "PUBLIC"):
-            i += 1
-            return accessMod, True
-        elif (tokenList[i].type == "STATIC" or tokenList[i].type == "CONCRETE" or tokenList[i].type == "DT" or tokenList[i].type == "ID" or tokenList[i].type == "VOID" or tokenList[i].type == "DICT"):
-            return accessMod, True
-        return accessMod, syntaxError()
-
-    def inherit():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        parent = ""
-        parClass, check = expands()
-        if (check):
-            parSymbol, check = applies()
-            if (check):
-                if (parClass != "" and parSymbol != ""):
-                    parent = parClass + "," + parSymbol
-                else:
-                    parent = parClass + parSymbol
-                return parent, True
-        return parent, syntaxError()
-
-    def expands():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        parClass = ""
-        if (tokenList[i].type == "EXPANDS"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                id = tokenList[i].value
-                check = lookupMainTable(id)
-                if (check == False):
-                    unDeclaredError(id, "Parent Class")
-                    return parClass, False
-                if (check.type != "CLASS"):
-                    randomError(
-                        "Class should be inherited from a class.")
-                    return parClass, False
-                if (check.typeMod == "CONCRETE" or check.typeMod == "STATIC"):
-                    randomError("class can't be inherited from " +
-                                check.typeMod.lower() + " class.")
-                    return parClass, False
-                parClass = parClass + id
-                i += 1
-                return parClass, True
-        elif (tokenList[i].type == "APPLIES" or "O_BRACE"):
-            return parClass, True
-        return parClass, syntaxError()
-
-    def applies():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        parSymbol = ""
-        if (tokenList[i].type == "APPLIES"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                id = tokenList[i].value
-                check = lookupMainTable(id)
-                if (check == False):
-                    unDeclaredError(id, "Parent Symbol")
-                    return parSymbol, False
-                if (check.type != "SYMBOL"):
-                    randomError(
-                        "APPLIES should be followed by a SYMBOL Identifier")
-                    return parSymbol, False
-                if (parSymbol != ""):
-                    parSymbol += ","
-                parSymbol = parSymbol + id
-                i += 1
-                return applies_(parSymbol)
-        elif (tokenList[i].type == "O_BRACE"):
-            return parSymbol, True
-        return parSymbol, syntaxError()
-
-    def applies_(parSymbol):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                id = tokenList[i].value
-                check = lookupMainTable(id)
-                if (check == False):
-                    unDeclaredError(id, "Parent Symbol")
-                    return parSymbol, False
-                parSymbol = parSymbol + "," + id
-                i += 1
-                return applies_(parSymbol)
-        elif (tokenList[i].type == "O_BRACE"):
-            return parSymbol, True
-        return syntaxError()
-
-    def pubPriv_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        accessMod = ""
-        if (tokenList[i].type == "PUBLIC" or tokenList[i].type == "PRIVATE"):
-            accessMod = tokenList[i].type
-            i += 1
-            return accessMod, True
-        elif (tokenList[i].type == "STATIC"):
-            accessMod = "PUBLIC"
-            return accessMod, True
-        return accessMod, syntaxError()
-
-    def functionSig(accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        ofType, check = returnType()
-        if (check and tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
-                currentScope = createScope()
-                currentFunction = currentScope
-                i += 1
-                paramList, check = argumentList()
-                if(check and tokenList[i].type == "C_PARAN"):
-                    i += 1
-                    check = insertAttribute(
-                        name, paramList, ofType, accessMod, static, concCond, currentClass)
-                    if (check == False):
-                        reDeclarationError(
-                            name, "Method in '" + currentClass + "'")
-                        return False
-                    check = bodyMST()
-                    if(check):
-                        return True
-        return syntaxError()
-
-    def returnType():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        retType = ""
-        if (tokenList[i].type == "DT" or tokenList[i].type == "ID"):
-            retType = tokenList[i].value
-            if (tokenList[i].type == "ID"):
-                check = lookupMainTable(retType)
-                if (check == False):
-                    unDeclaredError(
-                        retType, "Can't return object of this type.")
-                    return "", False
-                if (check.type == "STATIC" or check.type == "CONDENSED"):
-                    randomError("Can't return object of " +
-                                check.type+" class.")
-                    return "", False
-            i += 1
-            return returnType_(retType)
-        elif (tokenList[i].type == "VOID"):
-            retType = tokenList[i].type
-            i += 1
-            return retType, True
-        elif (tokenList[i].type == "DICT"):
-            i += 1
-            if (tokenList[i].type == "O_BRACK"):
-                i += 1
-                if (tokenList[i].type == "C_BRACK"):
-                    i += 1
-                    return retType, True
-        return retType, syntaxError()
-
-    def returnType_(retType):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                retType += "[]"
-                i += 1
-                return retType, True
-        elif (tokenList[i].type == "ID"):
-            return retType, True
-        return retType, syntaxError()
-
-    def argumentList():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        paramList = ""
-        if (tokenList[i].type == "C_PARAN"):
-            return paramList, True
-        elif (tokenList[i].type == "DT" or tokenList[i].type == "ID" or tokenList[i].type == "DICT"):
-            return argumentList_(paramList)
-        return paramList, syntaxError()
-
-    def argumentList_(paramList):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT" or tokenList[i].type == "ID"):
-            if (tokenList[i].type == "ID"):
-                check = lookupMainTable(tokenList[i].value)
-                if (check == False):
-                    unDeclaredError(
-                        tokenList[i].value, "Can't receive object of this type as argument.")
-                    return "", False
-                if (check.type == "STATIC" or check.type == "CONDENSED"):
-                    randomError(check.type + " class can't be instantiated.")
-                    return "", False
-            varType = tokenList[i].value
-            paramList += tokenList[i].value
-            i += 1
-            check = argumentList___()
-            if(check and tokenList[i].type == "ID"):
-                name = tokenList[i].value
-                check = insertFunctionTable(name, varType, currentScope)
-                if (check == False):
-                    reDeclarationError(name, "In Function Parameter List")
-                    return paramList, False
-                i += 1
-                return argumentList__(paramList)
-        if (tokenList[i].type == "DICT"):
-            i += 1
-            if (tokenList[i].type == "O_BRACK"):
-                i += 1
-                if (tokenList[i].type == "C_BRACK"):
-                    i += 1
-                    if (tokenList[i].type == "ID"):
-                        i += 1
-                        return argumentList__(paramList)
-        return paramList, syntaxError()
-
-    def argumentList__(paramList):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_PARAN"):
-            return paramList, True
-        elif (tokenList[i].type == "COMMA"):
-            paramList += ","
-            i += 1
-            return argumentList_(paramList)
-        return paramList, syntaxError()
-
-    def argumentList___():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return True
-        elif (tokenList[i].type == "ID"):
+        global i, tokenList
+        if tokenList[i].type == 'EOF':
             return True
-        return syntaxError()
+        if MST():
+            structure()
+        elif class_def():
+            structure()
+        syntaxError("Syntax Error: Invalid start rule")
 
-    def bodyMST():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_BRACE"):
-            i += 1
-            check = mst()
-            if (check):
-                tokenList[i].type == "C_BRACE"
-                if (currentFunction == scopeStack_[0]):
-                    # print("\tMethod Scope:\t", currentFunction)
-                    currentFunction == 0
-                # else:
-                #     print("\tMethod Scope:\t", currentFunction)
-                currentScope = destroyScope()
-                i += 1
-                return True
-        return syntaxError()
+    # ? ************************* CLASS DEFINITION *************************
 
-    def mst():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE" or tokenList[i].type == "CASE" or tokenList[i].type == "DEFAULT"):
-            return True
-        if (tokenList[i].type == "SWITCH" or tokenList[i].type == "IF" or tokenList[i].type == "FOR" or tokenList[i].type == "WHILE" or tokenList[i].type == "DO" or tokenList[i].type == "RETURN" or tokenList[i].type == "CONTINUE" or tokenList[i].type == "BREAK" or tokenList[i].type == "TRY" or tokenList[i].type == "INC_DEC" or tokenList[i].type == "CHAIN" or tokenList[i].type == "DT" or tokenList[i].type == "DICT" or tokenList[i].type == "ID" or tokenList[i].type == "THROW"):
-            check = sst()
-            if (check):
-                return mst()
-        return syntaxError()
-
-    def sst():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SWITCH"):
-            return switchSt()
-        elif (tokenList[i].type == "IF"):
-            return ifSt()
-        elif (tokenList[i].type == "FOR"):
-            return forSt()
-        elif (tokenList[i].type == "WHILE"):
-            return whileSt()
-        elif (tokenList[i].type == "DO"):
-            return doWhileSt()
-        elif (tokenList[i].type == "RETURN"):
-            return returnSt()
-        elif (tokenList[i].type == "CONTNIUE"):
-            return continueSt()
-        elif (tokenList[i].type == "BREAK"):
-            return breakSt()
-        elif (tokenList[i].type == "TRY"):
-            return trySt()
-        elif (tokenList[i].type == "INC_DEC"):
+    def class_def():
+        global i, tokenList
+        if tokenList[i].type == "SEALED":
             i += 1
-            searchIn, check = sp_()
-            if (check and tokenList[i].type == "ID"):
-                return ref()
-        elif (tokenList[i].type == "CHAIN"):
-            i += 1
-            if (tokenList[i].type == "TERMINATOR"):
+            if tokenList[i].type == "GROUP":
                 i += 1
-                if (tokenList[i].type == "ID"):
-                    check = ref()
-                    if (check):
-                        op, check = assignOp()
-                        if (check):
-                            type_, check = expression()
-                            if (check and tokenList[i].type == "SEMI_COL"):
-                                i += 1
-                                return True
-        elif (tokenList[i].type == "DT"):
-            i += 1
-            return nDec()
-        elif (tokenList[i].type == "DICT"):
-            i += 1
-            return multiArr()
-        elif (tokenList[i].type == "ID"):
-            i += 1
-            return sstID()
-        elif (tokenList[i].type == "THROW"):
-            i += 1
-            check = throw_()
-            if (check and tokenList[i].type == "SEMI_COL"):
-                i += 1
-                return True
-        return syntaxError()
-
-    def throw_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            return True
-        elif (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "EXCEPTION"):
-                i += 1
-                if (tokenList[i].type == "ID"):
+                if tokenList[i].type == "ID":
                     i += 1
-                    if (tokenList[i].type == "O_PARAN"):
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
-                        check = throw__()
-                        if (check and tokenList[i].type == "C_PARAN"):
+                        class_body()
+                        if tokenList[i].type == "C_BRACE":
+                            i += 1
                             return True
-        return syntaxError()
-
-    def throw__():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_PARAN"):
-            return True
-        elif (tokenList[i].type == "STR"):
+                        
+    # ? ************************* Inheritance *************************
+        elif tokenList[i].type == "GROUP":
             i += 1
-            return True
-        return syntaxError()
-
-    def switchSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SWITCH"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
+            if tokenList[i].type.type == "ID":
                 i += 1
-                if (tokenList[i].type == "ID"):
+                inheritance()
+                if tokenList[i].type == "O_BRACE":
                     i += 1
-                    if (tokenList[i].type == "C_PARAN"):
+                    class_body()
+                    if tokenList[i].type == "C_BRACE":
                         i += 1
-                        if (tokenList[i].type == "O_BRACE"):
+                        return True
+        return False
+
+    def inheritance():
+        global i, tokenList
+        if tokenList[i].type == "EXTENDS":
+            i += 1
+            if tokenList[i].type.type == "ID":
+                i += 1
+                return True
+        elif tokenList[i].type == "IMPLEMENTS":
+            i += 1
+            if tokenList[i].type.type == "ID":
+                i += 1
+                if inheritance_2():
+                    return True
+        else:
+            return True # Epsilon case
+
+    def inheritance_2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            if tokenList[i].type.type == "ID":
+                i += 1
+                inheritance_2()
+        else:
+            return True # Epsilon case
+
+    def class_body():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "#", "CONSTRUCTOR","METHOD"]:
+            if C_ST():
+                if C_MT():
+                    return True
+
+    # ? ************************* CLASS SINGLE STATEMENT *************************
+    
+    def C_ST():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            init()
+            if tokenList[i].type == "TERMINATOR":
+                i += 1
+        elif tokenList[i].type == "#":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                init()
+                if tokenList[i].type == "TERMINATOR":
+                    i += 1
+        elif tokenList[i].type == "METHOD":
+            if method():
+                if tokenList[i].type == "O_BRACE":
+                    i += 1
+                    MST()
+                    if tokenList[i].type == "C_BRACE":
+                        return True
+        elif tokenList[i].type == "CONSTRUCTOR":
+            if constructor():
+                return True
+        else:
+            return False
+
+    # ? ************************* CLASS METHOD *************************
+
+    def method():
+        global i, tokenList
+        if method_header():
+            i += 1
+            if tokenList[i].type == "O_BRACE":
+                i += 1
+                MST()
+                if tokenList[i].type == "C_BRACE":
+                    return True
+
+    def method_header():
+        global tokenList, i
+        if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
+            i+=1
+            if tokenList[i].type == "METHOD":
+                i += 1
+                method_next()
+                i += 1
+                if tokenList[i].type == "O_PARAM":
+                    params()
+                    i += 1
+                    if tokenList[i].type == "C_PARAM":
+                        return True
+        return False
+
+    def method_next():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+        elif tokenList[i].type == "#":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                return True
+        return False
+           
+    def params():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            params2()
+        else:
+            return True # Epsilon case
+
+    def params2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                params2()
+        else:
+            return True # Epsilon case
+
+    # ? ************************* CLASS CONSTRUCTOR *************************
+
+    def constructor():
+        global i, tokenList
+        if tokenList[i].type == "CONSTRUCTOR":
+            i += 1
+            if tokenList[i].type == "O_PARAM":
+                i += 1
+                params()
+                if tokenList[i].type == "C_PARAM":
+                    i += 1
+                    if tokenList[i].type == "O_BRACE":
+                        i += 1
+                        MST()
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
-                            check = switchBody()
-                            if (check and tokenList[i].type == "C_BRACE"):
+                            return True
+
+    # ? ************************* CLASS MULTI STATEMENT *************************
+
+    def C_MT():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "#", "constructor", "method"]:
+            if C_ST():
+                if C_MT():
+                    return True 
+        else:
+            return False 
+
+    # ? ************************* Interfaces *************************
+
+    def interface():
+        global i, tokenList
+        if tokenList[i].type == "INTERFACE":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                if tokenList[i].type == "O_BRACE":
+                    i += 1
+                    interface_body()
+                    if tokenList[i].type == "C_BRACE":
+                        i += 1
+                        return True
+        return False
+
+    def interface_body():
+        global i, tokenList
+        if tokenList[i].type == "METHOD":
+            method_header()
+            if tokenList[i].type == "TERMINATOR":
+                i += 1
+                interface_body_2()
+        else:
+            return True # Epsilon case
+
+    def interface_body_2():
+        global i, tokenList
+        if tokenList[i].type in "METHOD":
+            method_header()
+            i += 1
+            if tokenList[i].type == "TERMINATOR":
+                i += 1
+                interface_body_2()
+        else:
+            return True # Epsilon case
+    # ? ************************* Decleration *************************
+    def dec():
+        global i, tokenList
+        if tokenList[i].type == "DT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                init()
+                list_()
+        else:
+            syntaxError("Syntax Error")
+
+    def init():
+        global i, tokenList
+        if tokenList[i].type == "ASSIGN":
+            i += 1
+            init_1()
+        elif tokenList[i].type == "TERMINATOR":
+            return True
+        else:
+            syntaxError("Syntax Error")
+
+    def init_1():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            print('entering ISD')
+            i += 1
+            init_2()
+        elif tokenList[i].type in ["STR", "CHAR", "FLT", "INT"]:
+            print('entering number')
+            i += 1
+            return True
+        else:
+            
+            exp()
+
+    def init_2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                init_2()
+
+    def list_():
+        global i, tokenList
+        if tokenList[i].type == "TERMINATOR":
+            i += 1
+            list_1()
+        elif tokenList[i].type == "SEPARATOR":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                init()
+                list_()
+        elif tokenList[i].type in ['M_D_M', 'PM', 'RELATION']:
+            exp()
+        else:
+            print('giving errr')
+            syntaxError("Syntax Error")
+
+    def list_1():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            init()
+            list_()
+        else:
+            return True
+
+    # ? ************************* iterate *************************
+    # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
+
+    def for_loop():
+        global i, tokenList
+        if tokenList[i].type == "LOOP":
+            i += 1
+            if tokenList[i].type == "O_PARAM":
+                i += 1
+                for_loop_init()
+                print("condition in first param", tokenList[i].type)
+                if tokenList[i].type == "TERMINATOR":
+                    print('terninatiing in for lopp')
+                    i += 1
+                    inc_dec_st()
+                    print("condition")
+
+                    # if tokenList[i].type == "TERMINATOR":
+                    #     i += 1
+                    #     update()
+                    if tokenList[i].type == "C_PARAM":
+                        i += 1
+                        if tokenList[i].type == "O_BRACE":
+                            i += 1
+                            body()
+                            print("before closing brace")
+                            if tokenList[i].type == "C_BRACE":
+                                print("after closing brace")
                                 i += 1
                                 return True
-        return syntaxError()
-
-    def switchBody():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            return True
-        elif (tokenList[i].type == "CASE" or tokenList[i].type == "DEFAULT"):
-            check = case()
-            if (check):
-                check = default()
-                if (check):
-                    return True
-        return syntaxError()
-
-    def case():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "case"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
-                i += 1
-                constType, check = const()
-                if(check and tokenList[i].type == "C_PARAN"):
-                    i += 1
-                    if (tokenList[i].type == "COLON"):
-                        i += 2
-                        check = mst()
-                        if(check):
-                            return case()
-        elif (tokenList[i].type == "DEFAULT" or tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    def default():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DEFAULT"):
-            i += 1
-            if (tokenList[i].type == "COLON"):
-                i += 1
-                check = mst()
-                if (check):
-                    return case()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    def const():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        ofType = ""
-        if (tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "CHAR" or tokenList[i].type == "BOOL"):
-            if (tokenList[i].type == "INT"):
-                ofType = "int"
-            if (tokenList[i].type == "FLT"):
-                ofType = "float"
-            if (tokenList[i].type == "CHAR"):
-                ofType = "char"
-            if (tokenList[i].type == "STR"):
-                ofType = "string"
-            if (tokenList[i].type == "BOOL"):
-                ofType = "bool"
-            i += 1
-            return ofType, True
-        return ofType, syntaxError()
-
-    def ifSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "IF"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
-                i += 1
-                type_, check = expression()
-                if (check):
-                    if (tokenList[i].type == "C_PARAN"):
-                        i += 1
-                        check = bodyMST()
-                        if (check):
-                            check = oElse()
-                            if (check):
-                                return True
-        return syntaxError()
-
-    def oElse():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "else"):
-            i += 1
-            return oElse_()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    def oElse_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "IF"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
-                i += 1
-                type_, check = expression()
-                if (check):
-                    if (tokenList[i].type == "C_PARAN"):
-                        i += 1
-                        check = bodyMST()
-                        if (check):
-                            return oElse()
+                            else:
+                                syntaxError(
+                                    "Syntax Error: Missing '}'")
+                        else:
+                            syntaxError("Syntax Error: Missing '{'")
+                    else:
+                        syntaxError("Syntax Error: Missing ')'")
+                else:
+                    syntaxError("Syntax Error: Missing ';'")
+            else:
+                syntaxError("Syntax Error: Missing ';' after condition")
         else:
-            check = bodyMST()
-            if (check):
-                return True
-        return syntaxError()
+            syntaxError("Syntax Error: Missing '('")
+    # else:
+    #     syntaxError("Syntax Error: Missing 'ITERATE'")
 
-    def expression():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        retType = ""
-        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            type_, check = b()
-            if (check):
-                retType, check = a_(type_)
-                if (check):
-                    return retType, True
-        return retType, syntaxError()
+    # <init> → <dec> | <assign_st> | E
 
-    def a_(typeIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "OR"):
-            op = tokenList[i].value
-            i += 1
-            type_, check = b()
-            typeOut = binTypeCompatible(typeIn, type_, op)
-            if (typeOut == False):
-                binTypeMismatchedError(typeIn, type_, op)
-                return "", False
-            if (check):
-                typeIn, check = a_(typeOut)
-                if (check):
-                    return typeIn, True
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return typeIn, True
-        return typeIn, syntaxError()
-
-    def b():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        retType = ""
-        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            type_, check = c()
-            if (check):
-                retType, check = b_(type_)
-                if (check):
-                    return retType, True
-        return retType, syntaxError()
-
-    def b_(typeIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "AND"):
-            op = tokenList[i].value
-            i += 1
-            type_, check = c()
-            typeOut = binTypeCompatible(typeIn, type_, op)
-            if (typeOut == False):
-                binTypeMismatchedError(typeIn, type_, op)
-                return "", False
-            if (check):
-                typeIn, check = b_(typeOut)
-                if (check):
-                    return typeIn, True
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return typeIn, True
-        return typeIn, syntaxError()
-
-    def c():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        retType = ""
-        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            type_, check = e()
-            if (check):
-                retType, check = c_(type_)
-                if (check):
-                    return retType, True
-        return retType, syntaxError()
-
-    def c_(typeIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "R_OP"):
-            op = tokenList[i].value
-            i += 1
-            type_, check = e()
-            typeOut = binTypeCompatible(typeIn, type_, op)
-            if (typeOut == False):
-                binTypeMismatchedError(typeIn, type_, op)
-                return "", False
-            if (check):
-                typeIn, check = c_(typeOut)
-                if (check):
-                    return typeIn, True
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return typeIn, True
-        return typeIn, syntaxError()
-
-    def e():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        retType = ""
-        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            type_, check = t()
-            if (check):
-                retType, check = e_(type_)
-                if (check):
-                    return retType, True
-        return retType, syntaxError()
-
-    def e_(typeIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "P_M"):
-            op = tokenList[i].value
-            i += 1
-            type_, check = t()
-            typeOut = binTypeCompatible(typeIn, type_, op)
-            if (typeOut == False):
-                binTypeMismatchedError(typeIn, type_, op)
-                return "", False
-            if (check):
-                typeIn, check = e_(typeOut)
-                if (check):
-                    return typeIn, True
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return typeIn, True
-        return typeIn, syntaxError()
-
-    def t():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        retType = ""
-        if (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            type_, check = f()
-            if (check):
-                retType, check = t_(type_)
-                if (check):
-                    return retType, True
-        return retType, syntaxError()
-
-    def t_(typeIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "M_D_M"):
-            op = tokenList[i].value
-            i += 1
-            type_, check = f()
-            typeOut = binTypeCompatible(typeIn, type_, op)
-            if (typeOut == False):
-                binTypeMismatchedError(typeIn, type_, op)
-                return "", False
-            if (check):
-                typeIn, check = t_(typeOut)
-                if (check):
-                    return typeIn, True
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return typeIn, True
-        return typeIn, syntaxError()
-
-    def f():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        type_ = ""
-        if (tokenList[i].type == "O_PARAN"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_PARAN"):
-                return type_, True
+    def for_loop_init():
+        global i, tokenList
+        if tokenList[i].type in ["DT", "ID"]:
+            dec()
+        elif tokenList[i].type == "ID":
+            assign_st()
         else:
-            type_, check = const()
-            if (check):
-                return type_, True
-            elif (tokenList[i].type == "EXCLAIM"):
-                op = tokenList[i].value
-                i += 1
-                type_, check = f()
-                typeOut = uniTypeCompatible(type_, op)
-                if (typeOut == False):
-                    uniTypeMismatchedError(type_, op)
-                return "", False
-            else:
-                searchIn, check = sp_()
-                if (check and tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return optF(name, searchIn)
-        return type_, syntaxError()
+            return True # Epsilon case
 
-    def sp_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        searchIn = ""
-        if (tokenList[i].type == "CHAIN"):
-            searchIn = tokenList[i].value
-            if (searchIn == "parent"):
-                check = lookupMainTable(currentClass)
-                if (check == False):
-                    randomError(currentClass, " isnt inherited from any Class")
-                    return "", False
-                searchIn = check
-            else:
-                searchIn = currentClass
-            i += 1
-            if (tokenList[i].type == "TERMINATOR"):
-                i += 1
-                return searchIn, True
-        elif (tokenList[i].type == "ID"):
-            return searchIn, True
-        return searchIn, syntaxError()
+    def cond():
+        global i, tokenList
+        print("cond in condition", tokenList[i].value, tokenList[i+1].value)
 
-    def optF(name, searchIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        type_ = ""
-        if (tokenList[i].type == "TERMINATOR"):
-            if (searchIn == ""):
-                check = lookupFunctionTable(name)
-                if (check == False):
-                    unDeclaredError(name, "Not accessible in current Scope")
-                    return "", False
-                if (check == "int" or check == "float" or check == "char" or check == "string" or check == "bool"):
-                    randomError(
-                        name, " is of Primitive Data Type, can't Refer")
-                    return "", False
-                searchIn = check
-            else:
-                check = lookupAttributeTable(name, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(name, "un Declared in ", searchIn)
-                    return "", False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                type_ = check.type
-                if (type_ == "int" or type_ == "float" or type_ == "char" or type_ == "string" or type_ == "bool"):
-                    randomError(
-                        name, " is of Primitive Data Type, can't Refer in ", searchIn)
-                    return "", False
-                searchIn = type_
-            i += 1
-            if (tokenList[i].type == "ID"):
-                name = tokenList[i].value
-                i += 1
-                return optF(name, searchIn)
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return optF1(name, searchIn)
-        elif (tokenList[i].type == "O_PARAN"):
-            i += 1
-            param, check = pl()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                return optF_(name, searchIn, param)
-        elif (tokenList[i].type == "INC_DEC"):
-            op = tokenList[i].value
-            if (searchIn == ""):
-                check = lookupFunctionTable(name)
-                if (check == False):
-                    unDeclaredError(name, "Not accessible in current Scope")
-                    return "", False
-                type_ = uniTypeCompatible(check, op)
-                if (type_ == False):
-                    uniTypeMismatchedError(type_, op)
-                    return "", False
-            else:
-                check = lookupAttributeTable(name, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(name, "un Declared in ", searchIn)
-                    return "", False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                check = check.type
-                type_ = uniTypeCompatible(check, op)
-                if (type_ == False):
-                    uniTypeMismatchedError(check, op)
-                    return "", False
-            i += 1
-            return type_, True
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            if (searchIn == ""):
-                check = lookupFunctionTable(name)
-                if (check == False):
-                    unDeclaredError(name, "Not accessible in current Scope")
-                    return type_, False
-                type_ = check
-            else:
-                check = lookupAttributeTable(name, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(name, "un Declared in ", searchIn)
-                    return type_, False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                type_ = check.type
-            return type_, True
-        return type_, syntaxError()
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR","CHAR","NOT"]:
+            exp()
+        else:
+            return True # Epsilon case
 
-    def optF1(name, searchIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        type_ = ""
-        if (tokenList[i].type == "INC_DEC"):
+    def update():
+        global i, tokenList
+        if tokenList[i].type == "INC_DEC":
             i += 1
-            return type_, True
-        if (tokenList[i].type == "TERMINATOR"):
+            inc_dec_st()
+        elif tokenList[i].type == "ID":
+            assign_st()
+        else:
+            return True # Epsilon case
+
+    # ? ************************* Assignment *************************
+    # <assign_st> -> ID <A2> <assignop> <exp>
+    def assign_st():
+        global i, tokenList
+        if tokenList[i].type == "ID":
             i += 1
-            if (tokenList[i].type == "ID"):
+            A2()
+            assignop()
+            exp()
+        else:
+            syntaxError("Syntax Error: Missing ID in assignment statement")
+
+    def assignop():
+        global i, tokenList
+        if tokenList[i].type in ["ASSIGN", "COMBO_ASSIGN"]:
+            i += 1
+        else:
+            syntaxError("Syntax Error: Invalid assignment operator")
+
+    def A2():
+        global i, tokenList
+        if tokenList[i].type == "DOT":
+            i += 1
+            if tokenList[i].type == "ID":
                 i += 1
-                return optF(name, searchIn)
-        return type_, syntaxError()
-
-    def optF_(name, searchIn, param):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        type_ = ""
-        if (searchIn == ""):
-            searchIn = currentClass
-        check = lookupAttributeTable(name, param, searchIn)
-        if (check == False):
-            unDeclaredError(name, "un Declared in ", searchIn)
-            return type_, False
-        if (searchIn != currentClass):
-            if (check.accessMod == "PRIVATE"):
-                randomError("Can't access 'private' Modified variable")
-                return "", False
-        type_ = check.type
-        if (tokenList[i].type == "TERMINATOR"):
+                A2()
+        elif tokenList[i].type == "O_BRACK":
             i += 1
-            if (type_ == "int" or type_ == "float" or type_ == "char" or type_ == "string" or type_ == "bool"):
-                randomError(
-                    name, " is of Primitive Data Type, can't Refer in ", searchIn)
-                return "", False
-            searchIn = type_
-            if (tokenList[i].type == "ID"):
-                name = tokenList[i].value
+            exp()
+            if tokenList[i].type == "C_BRACK":
                 i += 1
-                return optF(name, searchIn)
-        elif (tokenList[i].type == "SEMI_COL" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID" or tokenList[i].type == "COMMA" or tokenList[i].type == "C_BRACK" or tokenList[i].type == "C_PARAN" or tokenList[i].type == "C_BRACE" or tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "CHAR" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL"):
-            return type_, True
-        return type_, syntaxError()
-
-    def pl():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        paramList = ""
-        if (tokenList[i].type == "C_PARAN"):
-            return paramList, True
-        elif (tokenList[i].type == "O_PARAN" or tokenList[i].type == "EXCLAIM" or tokenList[i].type == "INT" or tokenList[i].type == "CHAR" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "BOOL" or tokenList[i].type == "CHAIN" or tokenList[i].type == "ID"):
-            type_, check = expression()
-            paramList += type_
-            if (check):
-                return pl_(paramList)
-        return paramList, syntaxError()
-
-    def pl_(paramList):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "COMMA"):
-            paramList += ","
+                A2()
+        elif tokenList[i].type == "O_PARAM":
             i += 1
-            type_, check = expression()
-            paramList += type_
-            if (check):
-                return pl_(paramList)
-        elif (tokenList[i].type == "C_PARAN"):
-            return paramList, True
-        return paramList, syntaxError()
-
-    def forSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FOR"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
+            PL()
+            if tokenList[i].type == "C_PARAM":
                 i += 1
-                check = st1()
-                if(check):
-                    type_, check = expression()
-                    if (check and tokenList[i].type == "SEMI_COL"):
-                        i += 1
-                        check = st3()
-                        if (check and tokenList[i].type == "C_PARAN"):
-                            return body()
-        return syntaxError()
+                F2()
+
+    def F2():
+        global i, tokenList
+        if tokenList[i].type == "DOT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                A2()
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                A2()
+
+    def PL():
+        exp()
+        param2()
+
+    def param2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            exp()
+            param2()
+
+    # <yield_exp> → <exp> | E
+
+    def yield_exp():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            i += 1
+            return True
+        else:
+            return True # Epsilon case
+
+    # <body> → <MST>
 
     def body():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "O_BRACE"):
-            return bodyMST()
-        return syntaxError()
+        MST()
 
-    def st1():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT"):
+    # <MST> → <SST><MST>
+
+    def MST():
+        if tokenList[i].type == 'EOF':
+            return False
+        if SST():
+            MST()
+        # return True
+
+    # <SST> → <dec> | <when_otherwise> | <iterate_st> | <assign_st> | <inc_dec_st> | <return_st> | <fn_call> | <try_catch> | <dict> | <array>
+
+    def SST():
+        print('entering sst')
+        if tokenList[i].type == 'EOF':
+            return False
+        elif (tokenList[i].type == "DT" and tokenList[i+1].type != "DEFINE"):
+            print('entering dt')
+            dec()
+            SST()            
+        elif tokenList[i].type == "ARRAY":
+            array()
+            SST()
+        elif tokenList[i].type == "ID":
+            assign_st()
+        elif tokenList[i].type == "CALL_FUNC":
+            func_call()
+            SST()
+        elif tokenList[i].type == "INC_DEC":
+            inc_dec_st()
+        elif tokenList[i].type == "WHEN":
+            when_otherwise()
+            SST()
+        elif tokenList[i].type == "LOOP":
+            for_loop()
+            SST()
+        elif tokenList[i].type == "YIELD":
+            yield_exp()
+            SST()
+        elif tokenList[i].type == "ATTEMPT":
+            try_catch()
+            SST()
+        elif tokenList[i].type == "DICT":
+            dict_()
+            SST()
+        elif (tokenList[i].type in ['DT', 'VOID'] and tokenList[i+1].type == "DEFINE"):
+            func_def()
+            SST()
+                
+
+    # ? ************************* Array *************************
+    def array():
+        global i, tokenList
+        if tokenList[i].type == "ARRAY":
+            i+=1
+            if tokenList[i].type == "DT":
+                i += 1
+                if tokenList[i].type == "ID":
+                    i += 1
+                    dims()
+                    array_body()
+        syntaxError("Syntax Error: Missing data type in array declaration")
+
+    def dims():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
             i += 1
-            if (tokenList[i].type == "ID"):
+            if tokenList[i].type == "INT":
                 i += 1
-                return declare_()
+                if tokenList[i].type == "C_BRACK":
+                    i += 1
+                    dims()
+            else:
+                syntaxError("Syntax Error: Missing integer constant for array size")
         else:
-            searchIn, check = sp_()
-            if (check and tokenList[i].type == "ID"):
+            return True  # Epsilon case
+
+    def array_body():
+        global i, tokenList
+        if tokenList[i].type == "ASSIGN":
+            i += 1
+            if tokenList[i].type == "O_BRACK":
                 i += 1
-                check = ref()
-                if (check):
-                    op, check = assignOp()
-                    if (check):
-                        type_, check = expression()
-                        if (check and tokenList[i].type == "SEMI_COL"):
+                array_values()
+                if tokenList[i].type == "C_BRACK":
+                    i += 1
+                    return True
+        syntaxError("Syntax Error: Missing '=' in array declaration")
+
+    def array_values():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            nested_array()
+        else:
+            value_list()
+
+    def nested_array():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            value_list()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+        else:
+            value_list()
+
+    def nested_array():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            value_list()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+        
+        elif tokenList[i].type == "O_BRACK":
+            i+=1
+            value_list()
+            if tokenList[i].type == "C_BRACK":
+                i+=1
+                if tokenList[i].type == "SEPARATOR":
+                    nested_array()
+        else:
+            syntaxError("Syntax Error: Missing '[' in nested array")
+
+    def value_list():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            i += 1
+            value()
+        elif tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR"]:
+            value()
+            if tokenList[i].type == "SEPARATOR":
+                i += 1
+                value_list()               
+        else:
+            syntaxError("Syntax Error: Missing value in the value list")
+
+    def value():
+        exp()
+    
+    # ? ************************* Dict *************************
+
+    def dict_():
+        global i , tokenList
+        if tokenList[i].type == "DICT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                if tokenList[i].type == "ASSIGN":
+                    i += 1
+                    if tokenList[i].type == "O_BRACE":
+                        i += 1
+                        key_value_list()
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
                             return True
-        return syntaxError()
+        syntaxError(
+            "Syntax Error: Missing 'DICT' in dictionary declaration")
 
-    def ref():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return ref()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return ref_()
-        elif (tokenList[i].type == "O_PARAN"):
-            i += 1
-            param, check = pl()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (tokenList[i].type == "TERMINATOR"):
-                    i += 1
-                    if (tokenList[i].type == "ID"):
-                        i += 1
-                        return ref()
-        elif (tokenList[i].type == "ASSIGN" or tokenList[i].type == "COMP_ASSIGN"):
-            return True
-        return syntaxError()
+    def key_value_list():
+        key_value()
+        key_value_tail()
 
-    def ref_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TERMINATOR"):
+    def key_value_tail():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
             i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return ref()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return ref_()
-        elif (tokenList[i].type == "ASSIGN" or tokenList[i].type == "COMP_ASSIGN"):
-            return True
-        return syntaxError()
-
-    def assignOp():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        op = ""
-        if (tokenList[i].type == "ASSIGN" or tokenList[i].type == "COMP_ASSIGN"):
-            op = tokenList[i].value
-            i += 1
-            return op, True
-        return op, syntaxError()
-
-    def st3():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "INC_DEC"):
-            i += 1
-            searchIn, check = sp_()
-            if (check and tokenList[i].type == "ID"):
-                i += 1
-                return ref()
-        elif (tokenList[i].type == "ID"):
-            i += 1
-            return forOpt()
-        elif (tokenList[i].type == "C_PARAN"):
-            return True
-        return syntaxError()
-
-    def forOpt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return forOpt()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                return forOpt1()
-        elif (tokenList[i].type == "O_PARAN"):
-            i += 1
-            param, check = pl()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    return forOpt()
-        elif (tokenList[i].type == "INC_DEC"):
-            i += 1
-            return forOpt_()
+            key_value_list()
         else:
-            op, check = assignOp()
-            if (check):
-                type_, check = expression()
-                if (check):
-                    return forOpt_()
-        return syntaxError()
+            return True # Epsilon case
 
-    def forOpt1():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TERMINATOR"):
+    def key_value():
+        global i, tokenList
+        key()
+        if tokenList[i].type == "COLON":
             i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return forOpt()
-        elif (tokenList[i].type == "INC_DEC"):
-            i += 1
-            return forOpt_()
-        else:
-            op, check = assignOp()
-            if (check):
-                type_, check = expression()
-                if (check):
-                    return forOpt_()
-        return syntaxError()
+            value()
+        syntaxError("Syntax Error: Missing ':' in key-value pair")
 
-    def forOpt_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_PARAN"):
+    def key():
+        global i, tokenList
+        if tokenList[i].type == "STR" or tokenList[i].type == "CHAR":
+            i+=1
             return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return forOpt()
-        return syntaxError()
+        else:
+            exp()
 
-    def whileSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "WHILE"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
-                i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                return body()
-        return syntaxError()
+    def value():
+        global i, tokenList
+        if tokenList[i].type == "STR" or tokenList[i].type == "CHAR":
+            i+=1
+            return True
+        exp()
 
-    def doWhileSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DO"):
+    # ? ************************* When Otherwise Check *************************
+
+    def when_otherwise():
+        global i, tokenList
+        if tokenList[i].type == "WHEN":
             i += 1
-            check = bodyMST()
-            if (check and tokenList[i].type == "WHILE"):
+            if tokenList[i].type == "O_PARAM":
                 i += 1
-                if (tokenList[i].type == "O_PARAN"):
+                exp()
+                if tokenList[i].type == "C_PARAM":
                     i += 1
-                    type_, check = expression()
-                    if (check and tokenList[i].type == "C_PARAN"):
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
-                        if (tokenList[i].type == "SEMI_COL"):
+                        body()
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
-                            return True
-        return syntaxError()
+                            
+                        if_else_tail()
+        syntaxError("Syntax Error: Missing 'WHEN' in 'when' statement")
 
-    def returnSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "RETURN"):
+    def if_else_tail():
+        global i, tokenList
+        if tokenList[i].type == "CHECK":
             i += 1
-            check = return_()
-            if (check and tokenList[i].type == "SEMI_COL"):
+            if tokenList[i].type == "O_PARAM":
                 i += 1
-                return True
-        return syntaxError()
-
-    def return_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            return True
-        else:
-            type_, check = expression()
-            if (check):
-                return True
-        return syntaxError()
-
-    def continueSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "CONTNIUE"):
-            i += 1
-            if (tokenList[i].type == "SEMI_COL"):
-                i += 1
-                return True
-        return syntaxError()
-
-    def breakSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "BREAK"):
-            i += 1
-            if (tokenList[i].type == "SEMI_COL"):
-                i += 1
-                return True
-        return syntaxError()
-
-    def trySt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TRY"):
-            i += 1
-            check = bodyMST()
-            if (check):
-                check = catchFinally()
-                if (check):
-                    return True
-        return syntaxError()
-
-    def catchFinally():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FINALLY"):
-            return finallyC()
-        elif (tokenList[i].type == "CATCH"):
-            check = catch()
-            if (check):
-                check = finallyC_()
-                if (check):
-                    return True
-        return syntaxError()
-
-    def finallyC():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FINALLY"):
-            i += 1
-            return bodyMST()
-        return syntaxError()
-
-    def catch():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "CATCH"):
-            i += 1
-            if (tokenList[i].type == "O_PARAN"):
-                i += 1
-                if (tokenList[i].type == "EXCEPTION"):
+                exp()
+                if tokenList[i].type == "C_PARAM":
                     i += 1
-                    if (tokenList[i].type == "ID"):
+                    if tokenList[i].type == "O_BRACE":
                         i += 1
-                        if (tokenList[i].type == "C_PARAN"):
+                        body()
+                        if tokenList[i].type == "C_BRACE":
                             i += 1
-                            check = bodyMST()
-                            if (check):
-                                return catch_()
-        return syntaxError()
-
-    def catch_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FINALLY" or tokenList[i].type == "C_BRACE"):
-            return True
-        elif (tokenList[i].type == "CATCH"):
-            return catch()
-        return syntaxError()
-
-    def finallyC_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FINALLY"):
-            i += 1
-            return bodyMST()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    def classVars(accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT"):
-            ofType = tokenList[i].value
-            i += 1
-            return nDec(ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "ID"):
-            ofType = tokenList[i].value
-            check = lookupMainTable(ofType)
-            if (check == False):
-                unDeclaredError(ofType, "Can't create object.")
-                return False
-            if (check.type != "CLASS"):
-                randomError("Can't create object of 'symbol'")
-                return False
-            if (check.typeMod == "CONDENSED" or check.typeMod == "STATIC"):
-                randomError("Can't create object of '" +
-                            check.typeMod.lower() + " class'")
-                return False
-            i += 1
-            return oDec(check.name, accessMod, static, concCond)
-        elif (tokenList[i].type == "dict"):
-            i += 1
-            return multiArr()
-        return syntaxError()
-
-    def consVar(accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT"):
-            ofType = tokenList[i].value
-            i += 1
-            return nDec(ofType, accessMod, static, "")
-        elif (tokenList[i].type == "ID"):
-            ofType = tokenList[i].value
-            i += 1
-            return consVar_(ofType, accessMod, static)
-        elif (tokenList[i].type == "dict"):
-            i += 1
-            return multiArr()
-        return syntaxError()
-
-    def consVar_(ofType, accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_PARAN"):
-            currentScope = createScope()
-            currentFunction = currentScope
-            i += 1
-            param, check = argumentList()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (currentClass != ofType):
-                    randomError(
-                        "constructor and class name should be same.")
-                    return False
-                if (static != "" and param != ""):
-                    randomError(
-                        "class could not have parameterized static constructor")
-                    return False
-                check = insertAttribute(
-                    ofType, param, ofType, accessMod, static, "", currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        ofType, "Constructor of class "+currentClass)
-                    return False
-                return bodyMST()
-        elif (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            check = lookupMainTable(ofType)
-            if (check == False):
-                unDeclaredError(ofType, "Can't create object.")
-                return False
-            if (check.type != "CLASS"):
-                randomError("Can't create object of 'symbol'")
-                return False
-            if (check.typeMod == "CONDENSED"):
-                randomError("Can't create object of 'condensed class'")
-                return False
-            i += 1
-            return object_(name, ofType, accessMod, static, "")
-        elif (tokenList[i].type == "O_BRACE"):
-            i += 1
-            if (tokenList[i].type == "C_BRACE"):
-                i += 1
-                return oArr_()
-        return syntaxError()
-
-    def nDec(ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            return declare_(name, ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    return gArr_()
-        return syntaxError()
-
-    def declare_(name, ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (accessMod == ""):
-            if (tokenList[i].type == "SEMI_COL"):
-                check = insertFunctionTable(name, ofType, currentScope)
-                if (check == False):
-                    reDeclarationError(name, "Inside Scope No# ", currentScope)
-                    return False
-                i += 1
-                return True
-            elif (tokenList[i].type == "COMMA"):
-                check = insertFunctionTable(name, ofType, currentScope)
-                if (check == False):
-                    reDeclarationError(name, "Inside Scope No# ", currentScope)
-                    return False
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return declare_(name, ofType, accessMod, static, concCond)
-            elif (tokenList[i].type == "ASSIGN"):
-                i += 1
-                return initList(name, ofType, accessMod, static, concCond)
-        else:
-            if (tokenList[i].type == "SEMI_COL"):
-                check = insertAttribute(
-                    name, "~", ofType, accessMod, static, concCond, currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        name, "Variable Declaration in '" + currentClass + "'")
-                    return False
-                i += 1
-                return True
-            elif (tokenList[i].type == "COMMA"):
-                check = insertAttribute(
-                    name, "~", ofType, accessMod, static, concCond, currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        name, "Variable Declaration in '" + currentClass + "'")
-                    return False
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return declare_(name, ofType, accessMod, static, concCond)
-            elif (tokenList[i].type == "ASSIGN"):
-                i += 1
-                return initList(name, ofType, accessMod, static, concCond)
-        return syntaxError()
-
-    def initList(name, ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        searchIn, check = sp_()
-        if (check and tokenList[i].type == "ID"):
-            idName = tokenList[i].value
-            i += 1
-            return list1(name, ofType, accessMod, static, concCond, idName, searchIn)
-        else:
-            constType, check = const()
-            if (check):
-                return list2(name, ofType, accessMod, static, concCond, constType)
-            elif (tokenList[i].type == "O_PARAN"):
-                i += 1
-                type_, check = expression()
-                if (check and tokenList[i].type == "C_PARAN"):
-                    return list2(name, ofType, accessMod, static, concCond, type_)
-            elif (tokenList[i].type == "EXCLAIM"):
-                i += 1
-                type_, check = f()
-                if (check):
-                    check = binTypeCompatible(ofType, type_, "=")
-                    if (check == False):
-                        binTypeMismatchedError(ofType, type_, "=")
-                        return False
-                    return initList_(name, ofType, accessMod, static, concCond)
-        return syntaxError()
-
-    def initList_(name, ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (accessMod == ""):
-            if (tokenList[i].type == "SEMI_COL"):
-                check = insertFunctionTable(name, ofType, currentScope)
-                if (check == False):
-                    reDeclarationError(name, "Inside Scope No# ", currentScope)
-                    return False
-                i += 1
-                return True
-            elif (tokenList[i].type == "COMMA"):
-                check = insertFunctionTable(name, ofType, currentScope)
-                if (check == False):
-                    reDeclarationError(name, "Inside Scope No# ", currentScope)
-                    return False
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return declare_(name, ofType, accessMod, static, concCond)
-        else:
-            if (tokenList[i].type == "SEMI_COL"):
-                check = insertAttribute(
-                    name, "~", ofType, accessMod, static, concCond, currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        name, "Variable Declaration in '" + currentClass + "'")
-                    return "", False
-                i += 1
-                return True
-            elif (tokenList[i].type == "COMMA"):
-                check = insertAttribute(
-                    name, "~", ofType, accessMod, static, concCond, currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        name, "Variable Declaration in '" + currentClass + "'")
-                    return "", False
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return declare_(name, ofType, accessMod, static, concCond)
-        return syntaxError()
-
-    def list1(name, ofType, accessMod, static, concCond, idName, searchIn):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ASSIGN"):
-            op = tokenList[i].value
-            if (searchIn == ""):
-                check = lookupFunctionTable(idName)
-                if (check == False):
-                    unDeclaredError(idName, "Not accessible in current Scope")
-                    return False
-            else:
-                check = lookupAttributeTable(idName, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(idName, "un Declared in ", searchIn)
-                    return False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                check = check.type
-            type_ = binTypeCompatible(ofType, check, op)
-            if (type_ == False):
-                binTypeMismatchedError(ofType, check, op)
-                return False
-            i += 1
-            return initList(name, ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "TERMINATOR"):
-            if (searchIn == ""):
-                check = lookupFunctionTable(idName)
-                if (check == False):
-                    unDeclaredError(idName, "Not accessible in current Scope")
-                    return False
-            else:
-                check = lookupAttributeTable(idName, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(idName, "un Declared in ", searchIn)
-                    return False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                check = check.type
-            if (check == "int" or check == "float" or check == "char" or check == "string" or check == "bool"):
-                randomError(
-                    idName, " is of Primitive Data Type, can't Refer")
-                return False
-            searchIn = check
-            i += 1
-            if (tokenList[i].type == "ID"):
-                idName = tokenList[i].value
-                i += 1
-                return list1(name, ofType, accessMod, static, concCond, idName, searchIn)
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return list3()
-        elif (tokenList[i].type == "O_PARAN"):
-            i += 1
-            param, check = pl()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (searchIn == ""):
-                    searchIn = currentClass
-                check = lookupAttributeTable(idName, param, searchIn)
-                if (check == False):
-                    unDeclaredError(idName, "un Declared in ", searchIn)
-                    return False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                type_ = check.type
-                return list2(name, ofType, accessMod, static, concCond, type_)
-        elif (tokenList[i].type == "INC_DEC"):
-            op = tokenList[i].value
-            if (searchIn == ""):
-                check = lookupFunctionTable(idName)
-                if (check == False):
-                    unDeclaredError(idName, "Not accessible in current Scope")
-                    return False
-            else:
-                check = lookupAttributeTable(idName, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(idName, "un Declared in ", searchIn)
-                    return False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                check = check.type
-            type_ = uniTypeCompatible(check, op)
-            if (type_ == False):
-                uniTypeMismatchedError(check, op)
-                return False
-            i += 1
-            return list2(name, ofType, accessMod, static, concCond, type_)
-        else:
-            if (searchIn == ""):
-                check = lookupFunctionTable(idName)
-                if (check == False):
-                    unDeclaredError(idName, "Not accessible in current Scope")
-                    return False
-            else:
-                check = lookupAttributeTable(idName, "~", searchIn)
-                if (check == False):
-                    unDeclaredError(idName, "un Declared in ", searchIn)
-                    return False
-                if (searchIn != currentClass):
-                    if (check.accessMod == "PRIVATE"):
-                        randomError("Can't access 'private' Modified variable")
-                        return "", False
-                check = check.type
-            type_ = check
-            check = list2(name, ofType, accessMod, static, concCond, type_)
-            if (check):
-                return True
-        return syntaxError()
-
-    def list2(name, ofType, accessMod, static, concCond, type_):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "M_D_M" or tokenList[i].type == "P_M" or tokenList[i].type == "R_OP" or tokenList[i].type == "AND" or tokenList[i].type == "OR" or tokenList[i].type == "SEMI_COL" or tokenList[i].type == "COMMA"):
-            type_, check = t_(type_)
-            if (check):
-                type_, check = e_(type_)
-                if (check):
-                    type_, check = c_(type_)
-                    if (check):
-                        type_, check = b_(type_)
-                        if (check):
-                            type_, check = a_(type_)
-                            if (check):
-                                check = binTypeCompatible(ofType, type_, "=")
-                                if (check == False):
-                                    binTypeMismatchedError(ofType, type_, "=")
-                                    return False
-                                check = initList_(
-                                    name, ofType, accessMod, static, concCond)
-                                if (check):
-                                    return True
-        return syntaxError()
-
-    # Array Implementation
-    def list3():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ASSIGN"):
-            i += 1
-            return initList()
-        elif (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return list1()
-        elif (tokenList[i].type == "INC_DEC"):
-            i += 1
-            return list2()
-        else:
-            check = list2()
-            if (check):
-                return True
-        return syntaxError()
-
-    # Array Implementation
-    def gArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 2
-                return gArr_()
-        elif (tokenList[i].type == "ASSIGN"):
-            i += 1
-            check = initGArr()
-            if (check):
-                check = gArr_()
-                if (check):
-                    return True
-        return syntaxError()
-
-    # Array Implementation
-    def initGArr():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "DT"):
-                i += 1
-                if (tokenList[i].type == "O_BRACK"):
-                    i += 1
-                    return initGArr_()
-        return syntaxError()
-
-    # Array Implementation
-    def initGArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACK"):
-            i += 1
-            if (tokenList[i].type == "O_BRACE"):
-                i += 1
-                check = valGArr()
-                if (check and tokenList[i].type == "C_BRACE"):
-                    i += 1
-                    return True
-        else:
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return True
-        return syntaxError()
-
-    # Array Implementation
-    def valGArr():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            return True
-        else:
-            constType, check = const()
-            if (check):
-                check = valGArr_()
-                if (check):
-                    return True
-        return syntaxError()
-
-    # Array Implementation
-    def valGArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            constType, check = const()
-            if (check):
-                check = valGArr_()
-                if (check):
-                    return True
-        return syntaxError()
-
-    def oDec(ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            return object_(name, ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    return oArr_()
-        return syntaxError()
-
-    def object_(name, ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (accessMod == ""):
-            if (tokenList[i].type == "SEMI_COL"):
-                if (name != ""):
-                    check = insertFunctionTable(name, ofType, currentScope)
-                    if (check == False):
-                        reDeclarationError(
-                            name, "Inside Scope No# ", currentScope)
-                        return False
-                i += 1
-                return True
-            elif (tokenList[i].type == "COMMA"):
-                if (name != ""):
-                    check = insertFunctionTable(name, ofType, currentScope)
-                    if (check == False):
-                        reDeclarationError(
-                            name, "Inside Scope No# ", currentScope)
-                        return False
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return object_(name, ofType, accessMod, static, concCond)
-            elif (tokenList[i].type == "ASSIGN"):
-                i += 1
-                check = initObject(name, ofType, accessMod, static, concCond)
-                if (check):
-                    return object_("", ofType, accessMod, static, concCond)
-        else:
-            if (tokenList[i].type == "SEMI_COL"):
-                if (name != ""):
-                    check = insertAttribute(
-                        name, "~", ofType, accessMod, static, concCond, currentClass)
-                    if (check == False):
-                        reDeclarationError(
-                            name, "Object decalaration in " + currentClass)
-                        return False
-                i += 1
-                return True
-            elif (tokenList[i].type == "COMMA"):
-                if (name != ""):
-                    check = insertAttribute(
-                        name, "~", ofType, accessMod, static, concCond)
-                    if (check == False):
-                        reDeclarationError(
-                            name, "Object decalaration in " + currentClass)
-                        return False
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    return object_(name, ofType, accessMod, static, concCond)
-            elif (tokenList[i].type == "ASSIGN"):
-                i += 1
-                check = initObject(name, ofType, accessMod, static, concCond)
-                if (check):
-                    return object_("", ofType, accessMod, static, concCond)
-        return syntaxError()
-
-    def initObject(name, ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            idName = tokenList[i].value
-            if (accessMod == ""):
-                check = lookupFunctionTable(idName)
-                if (check == False):
-                    unDeclaredError(
-                        idName, "Can't create another reference of it")
-                    return False
-                y = check
-                while(True):
-                    if (ofType == y):
-                        break
+                            if_else_tail()
                     else:
-                        check = lookupMainTable(y)
-                        check = lookupMainTable(check.parent.split(',')[0])
-                        if (check == False):
-                            randomError("Can't implicitly convert " +
-                                        idName + " into " + name)
-                            return False
-                        if (check.type != "CLASS"):
-                            randomError("Can't implicitly convert " +
-                                        idName + " into " + name)
-                            return False
-                        y = check
-                # Object of Child Class
-                check = insertFunctionTable(name, y, currentScope)
-                if (check == False):
-                    reDeclarationError(name, "Inside Scope No# ", currentScope)
-                    return False
-            else:
-                check = lookupAttributeTable(idName, "~", currentClass)
-                if (check == False):
-                    unDeclaredError(
-                        idName, "Can't create another reference of it")
-                    return False
-                y = check
-                while(True):
-                    if (ofType == y.type):
-                        break
-                    else:
-                        check = lookupMainTable(y.name)
-                        check = lookupMainTable(check.parent.split(',')[0])
-                        if (check == False):
-                            randomError("Can't implicitly convert " +
-                                        idName + " into " + name)
-                            return False
-                        if (check.type != "CLASS"):
-                            randomError("Can't implicitly convert " +
-                                        idName + " into " + name)
-                            return False
-                        y = check
-                check = insertAttribute(
-                    name, "~", y, accessMod, static, concCond, currentClass)
-            i += 1
-            return True
-        elif (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                idName = tokenList[i].value
-                check = lookupMainTable(idName)
-                if (check == False):
-                    unDeclaredError(
-                        idName, "can't create object of this class.")
-                    return False
-                if (check.type != "CLASS"):
-                    randomError("Object can't be of " + check.type + " type.")
-                    return False
-                if (check.typeMod == "STATIC" or check.typeMod == "CONDENSED"):
-                    randomError("Object can't be of " +
-                                check.typeMod + " class.")
-                    return False
-                if (ofType != idName):
-                    y = check.parent.split(',')[0]
-                    while (True):
-                        check = lookupMainTable(y)
-                        if (check == False):
-                            randomError("Can't implicitly convert " +
-                                        ofType + " into " + idName)
-                            return False
-                        if (check.type != "CLASS"):
-                            randomError("Can't implicitly convert " +
-                                        ofType + " into " + idName)
-                            return False
-                        if (check.typeMod == "STATIC" or check.typeMod == "CONDENSED"):
-                            randomError("Object can't be of " +
-                                        check.typeMod + " class.")
-                            return False
-                        if (check.name == ofType):
-                            break
-                        else:
-                            y = check.parent.split(',')[0]
-                i += 1
-                if (tokenList[i].type == "O_PARAN"):
-                    i += 1
-                    param, check = pl()
-                    if (check and tokenList[i].type == "C_PARAN"):
-                        i += 1
-                        check = lookupAttributeTable(idName, param, idName)
-                        if (check == False):
-                            unDeclaredError(
-                                idName, "Don't have same signature constructor.")
-                            return False
-                        if (accessMod == ""):
-                            check = insertFunctionTable(
-                                name, idName, currentScope)
-                            if (check == False):
-                                reDeclarationError(
-                                    name, "Inside Scope No# ", currentScope)
-                                return False
-                        else:
-                            check = insertAttribute(
-                                name, "~", idName, accessMod, static, concCond, currentClass)
-                            if (check == False):
-                                reDeclarationError(
-                                    name, "Object Declaration in '" + currentClass + "'")
-                        return True
-        return syntaxError()
-
-    # Array Implementation
-    def oArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return oArr_()
-        elif (tokenList[i].type == "ASSIGN"):
-            i += 1
-            check = initOArr()
-            if (check):
-                return oArr_()
-        return syntaxError()
-
-    # Array Implementation
-    def initOArr():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                if (tokenList[i].type == "O_BRACK"):
-                    i += 1
-                    return initOArr_()
-        return syntaxError()
-
-    # Array Implementation
-    def initOArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACK"):
-            i += 1
-            if (tokenList[i].type == "O_BRACE"):
-                i += 1
-                check = valOArr()
-                if (check and tokenList[i].type == "C_BRACE"):
-                    i += 1
-                    return True
-        else:
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return True
-        return syntaxError()
-
-    # Array Implementation
-    def valOArr():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                if (tokenList[i].type == "O_PARAN"):
-                    i += 1
-                    param, check = pl()
-                    if (check and tokenList[i].type == "C_PARAN"):
-                        i += 1
-                        return valOArr_()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    # Array Implementation
-    def valOArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "NEW"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    if (tokenList[i].type == "O_PARAN"):
-                        i += 1
-                        param, check = pl()
-                        if (check and tokenList[i].type == "C_PARAN"):
-                            i += 1
-                            return valOArr_()
-        return syntaxError()
-
-    # Array Implementation
-    def multiArr():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    return multiArr_()
-        return syntaxError()
-
-    # Array Implementation
-    def multiArr_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return multiArr_()
-        elif (tokenList[i].type == "ASSIGN"):
-            i += 1
-            check = initMultidim()
-            if (check):
-                return multiArr_()
-        return syntaxError()
-
-    # Array Implementation
-    def initMultidim():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "NEW"):
-            i += 1
-            if (tokenList[i].type == "DICT"):
-                i += 1
-                if (tokenList[i].type == "O_BRACK"):
-                    i += 1
-                    return initMultidim_()
-        return syntaxError()
-
-    # Array Implementation
-    def initMultidim_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACK"):
-            i += 1
-            if (tokenList[i].type == "O_BRACE"):
-                i += 1
-                check = valMultidim()
-                if (check and tokenList[i].type == "C_BRACE"):
-                    i += 1
-                    return True
-        else:
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return True
-        return syntaxError()
-
-    # Array Implementation
-    def valMultidim():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            return valMultidim_()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    # Array Implementation
-    def valMultidim_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            return True
-        elif (tokenList[i].type == "COMMA"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return valMultidim_()
-        return syntaxError()
-
-    def sstID():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            return object_()
-        elif (tokenList[i].type == "TERMINATOR" or tokenList[i].type == "O_BRACK" or tokenList[i].type == "O_PARAN" or tokenList[i].type == "INC_DEC" or tokenList[i].type == "ASSIGN" or tokenList[i].type == "COMP_ASSIGN"):
-            return sstID_()
-        return syntaxError()
-
-    def sstID_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return sstID_()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "C_BRACK"):
-                i += 1
-                return sst1()
-        elif (tokenList[i].type == "O_PARAN"):
-            i += 1
-            param, check = pl()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                return sst2()
-        elif (tokenList[i].type == "INC_DEC"):
-            i += 1
-            if (tokenList[i].type == "SEMI_COL"):
-                i += 1
-                return True
-        elif (tokenList[i].type == "ASSIGN" or tokenList[i].type == "COMP_ASSIGN"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "SEMI_COL"):
-                i += 1
-                return True
-        return syntaxError()
-
-    def sst1():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return sstID_()
-        elif (tokenList[i].type == "INC_DEC"):
-            i += 1
-            if (tokenList[i].type == "SEMI_COL"):
-                i += 1
-                return True
-        elif (tokenList[i].type == "ASSIGN" or tokenList[i].type == "COMP_ASSIGN"):
-            i += 1
-            type_, check = expression()
-            if (check and tokenList[i].type == "SEMI_COL"):
-                return True
-        elif (tokenList[i].type == "SEMI_COL"):
-            i += 1
-            return True
-        return syntaxError()
-
-    def sst2():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "SEMI_COL"):
-            i += 1
-            return True
-        elif (tokenList[i].type == "TERMINATOR"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                return sstID_()
-
-    def intSt():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        accessMod, check = public_()
-        if (check):
-            ofType, check = returnType()
-            if (check):
-                if (tokenList[i].type == "ID"):
-                    name = tokenList[i].value
-                    i += 1
-                    if (tokenList[i].type == "O_PARAN"):
-                        currentScope = createScope()
-                        currentFunction = currentScope
-                        i += 1
-                        paramList, check = argumentList()
-                        if (check and tokenList[i].type == "C_PARAN"):
-                            i += 1
-                            check = insertAttribute(
-                                name, paramList, ofType, accessMod, "STATIC", "", currentClass)
-                            if (check == False):
-                                reDeclarationError(
-                                    name, "Method in '" + currentClass + "'")
-                                return False
-                            if (tokenList[i].type == "O_BRACE"):
-                                i += 1
-                                if (tokenList[i].type == "C_BRACE"):
-                                    i += 1
-                                    if (tokenList[i].type == "SEMI_COL"):
-                                        i += 1
-                                        return intSt()
-        elif (tokenList[i].type == "C_BRACE"):
-            return True
-        return syntaxError()
-
-    def sCst_(accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT"):
-            ofType = tokenList[i].value
-            i += 1
-            return sStDT(ofType, accessMod, static)
-        elif (tokenList[i].type == "ID"):
-            ofType = tokenList[i].value
-            check = lookupMainTable(ofType)
-            if (check == False):
-                unDeclaredError(ofType, "Can't create object.")
-                return False
-            if (check.type != "CLASS"):
-                randomError("Can't create object of 'symbol'")
-                return False
-            if (check.typeMod == "CONDENSED"):
-                randomError("Can't create object of 'condensed class'")
-                return False
-            i += 1
-            return sStID(ofType, accessMod, static)
-        elif (tokenList[i].type == "DICT"):
-            i += 1
-            check = multiArr()
-            if (check):
-                return sCst()
-        elif (tokenList[i].type == "VOID"):
-            ofType = tokenList[i].value
-            i += 1
-            if (tokenList[i].type == "MAIN_METHOD"):
-                name = tokenList[i].value
-                i += 1
-                return sMain(name, ofType, accessMod, static)
-        return syntaxError()
-
-    def sStDT(ofType, accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            check = declare_(name, ofType, accessMod, static, "")
-            if (check):
-                return sCst()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return sStDT_()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            name = tokenList[i].value
-            i += 1
-            return sMain(name, ofType, accessMod, static)
-        return syntaxError()
-
-    # Array Implementation
-    def sStDT_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            check = gArr_()
-            if (check):
-                return sCst()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            i += 1
-            return sMain()
-        return syntaxError()
-
-    def sStID(ofType, accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            check = object_(name, ofType, accessMod, static, "")
-            if (check):
-                return sCst()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return sStID_()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            name = tokenList[i].value
-            i += 1
-            return sMain(name, ofType, accessMod, static)
-        elif (tokenList[i].type == "O_PARAN"):
-            currentScope = createScope()
-            currentFunction = currentScope
-            i += 1
-            if (tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (currentClass != ofType):
-                    randomError(
-                        "constructor and class name should be same.")
-                    return False
-                if (static != ""):
-                    randomError(
-                        "class could not have parameterized static constructor")
-                    return False
-                check = insertAttribute(
-                    ofType, "", ofType, accessMod, static, "", currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        ofType, "Constructor of class " + currentClass)
-                    return False
-                check = bodyMST()
-                if (check):
-                    return sCst()
-        return syntaxError()
-
-    # Array Implementation
-    def sStID_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            check = oArr_()
-            if (check):
-                return sCst()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            i += 1
-            return sMain()
-        return syntaxError()
-
-    def sMain(name, ofType, accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_PARAN"):
-            currentScope = createScope()
-            currentFunction = currentScope
-            i += 1
-            paramList, check = argumentList()
-            if (check and tokenList[i].type == "C_PARAN"):
-                check = insertAttribute(
-                    name, paramList, ofType, accessMod, static, "", currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        name, "Method in '" + currentClass + "'")
-                    return False
-                i += 1
-                check = bodyMST()
-                if (check):
-                    return sCstNM()
-        return syntaxError()
-
-    def sCstNM():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FUNCTION"):
-            i += 1
-            accessMod, check = pubPriv_()
-            if (check and tokenList[i].type == "STATIC"):
-                i += 1
-                check = functionSig(accessMod, "", "")
-                if (check):
-                    return sCstNM()
-        elif (tokenList[i].type == "PRIVATE"):
-            accessMod = tokenList[i].type
-            i += 1
-            if (tokenList[i].type == "STATIC"):
-                static = tokenList[i].type
-                i += 1
-                check = classVars(accessMod, static, "")
-                if (check):
-                    return sCstNM()
-        elif (tokenList[i].type == "C_BRACE"):
-            currentScope = destroyScope()
-            i += 1
-            check = lookupMainTable(currentClass)
-            check = checkConstructor(check)
-            if (check):
-                return mainDone()
-        else:
-            accessMod, check = public_()
-            if (check and tokenList[i].type == "STATIC"):
-                static = tokenList[i].type
-                i += 1
-                check = consVar(accessMod, static)
-                if (check):
-                    return sCstNM()
-        return syntaxError()
-
-    def mainDone():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "EOF"):
-            return True
-        elif (tokenList[i].type == "STATIC"):
-            i += 1
-            if (tokenList[i].type == "CLASS"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    parent, check = inherit()
-                    if (check and tokenList[i].type == "O_BRACE"):
-                        i += 1
-                        check = sCstNM()
-                        if (check):
-                            return mainDone()
-        elif (tokenList[i].type == "SYMBOL"):
-            i += 1
-            if (tokenList[i].type == "ID"):
-                i += 1
-                if (tokenList[i].type == "O_BRACE"):
-                    i += 1
-                    check = intSt()
-                    if (check and tokenList[i].type == "C_BRACE"):
-                        i += 1
-                        return mainDone()
-        else:
-            check = concCond_()
-            if (check and tokenList[i].type == "CLASS"):
-                i += 1
-                if (tokenList[i].type == "ID"):
-                    i += 1
-                    parent, check = inherit()
-                    if (check and tokenList[i].type == "O_BRACE"):
-                        i += 1
-                        check = gcCstNM()
-                        if (check):
-                            return mainDone()
-        return syntaxError()
-
-    def concCond_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        concCond = ""
-        if (tokenList[i].type == "CONCRETE"):
-            concCond = tokenList[i].type
-            i += 1
-            return concCond, True
-        elif (tokenList[i].type == "CONDENSED"):
-            concCond = tokenList[i].type
-            i += 1
-            return concCond, True
-        elif (tokenList[i].type == "CLASS"):
-            return concCond, True
-        return concCond, syntaxError()
-
-    def concrete_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        typeMod = ""
-        if (tokenList[i].type == "CONCRETE"):
-            typeMod = tokenList[i].type
-            i += 1
-            return typeMod, True
-        elif (tokenList[i].type == "CLASS"):
-            return typeMod, True
-        return typeMod, syntaxError()
-
-    def cCst():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            currentScope = destroyScope()
-            i += 1
-            check = lookupMainTable(currentClass)
-            check = checkConstructor(check)
-            if (check):
-                return structure()
-        elif (tokenList[i].type == "FUNCTION"):
-            i += 1
-            accessMod, check = access()
-            if (check):
-                check = types(accessMod)
-                if (check):
-                    return cCst()
-        else:
-            accessMod, check = presPriv()
-            if (check):
-                static, concCond, check = statConc()
-                if (check):
-                    check = classVars(accessMod, static, concCond)
-                    if (check):
-                        return cCst()
-            else:
-                check = classVars("PUBLIC", "", "")
-                if (check):
-                    return cCst()
+                        syntaxError(
+                            "Syntax Error: Missing ':' after condition in 'check' statement")
                 else:
-                    accessMod, check = public_()
-                    if (check):
-                        return cCst_(accessMod)
-        return syntaxError()
-
-    def access():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        accessMod = ""
-        if (tokenList[i].type == "PUBLIC"):
-            accessMod = tokenList[i].type
+                    syntaxError(
+                        "Syntax Error: Missing ')' after condition in 'check' statement")
+        elif tokenList[i].type == "OTHERWISE":
             i += 1
-            return accessMod, True
-        elif (tokenList[i].type == "PRIVATE"):
-            accessMod = tokenList[i].type
-            i += 1
-            return accessMod, True
-        elif (tokenList[i].type == "PRESERVED"):
-            accessMod = tokenList[i].type
-            i += 1
-            return accessMod, True
-        elif (tokenList[i].type == "CONDENSED" or tokenList[i].type == "DT" or tokenList[i].type == "ID" or tokenList[i].type == "DICT" or tokenList[i].type == "VOID" or tokenList[i].type == "STATIC" or tokenList[i].type == "CONCRETE"):
-            accessMod = "PUBLIC"
-            return accessMod, True
-        return accessMod, syntaxError()
-
-    def types(accessMod):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "CONDENSED"):
-            concCond = tokenList[i].type
-            i += 1
-            ofType, check = returnType()
-            if (check and tokenList[i].type == "ID"):
-                name = tokenList[i].value
+            if tokenList[i].type == "O_BRACE":
                 i += 1
-                if (tokenList[i].type == "O_PARAN"):
-                    currentScope = createScope()
-                    currentFunction = currentScope
+                body()
+                if tokenList[i].type == "C_BRACE":
                     i += 1
-                    paramList, check = argumentList()
-                    if (check and tokenList[i].type == "C_PARAN"):
-                        check = insertAttribute(
-                            name, paramList, ofType, accessMod, "", concCond, currentClass)
-                        if (check == False):
-                            reDeclarationError(
-                                name, "Method in '" + currentClass + "'")
-                            return False
+                if_else_tail()
+            else:
+                syntaxError("Syntax Error: Missing ':' after 'otherwise'")
+        else:
+            return True # Epsilon case
+
+    # ? ************************* Function Call *************************
+    def func_call():
+        if tokenList[i].type == 'CALL_FUNC':
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                if tokenList[i].type == "O_PARAM":
+                    i += 1
+                    param()
+                    if tokenList[i].type == "C_PARAM":
                         i += 1
-                        if (tokenList[i].type == "SEMI_COL"):
+                        return True
+        syntaxError(
+            "Syntax Error: Missing function name in function call")
+
+    def param():
+        exp()
+        param2()
+
+    def param2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            exp()
+            param2()
+        else:
+            return True # Epsilon case
+
+    # Function Definition
+
+    def func_def():
+        global i, tokenList
+        if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
+            i+=1
+            if tokenList[i].type == "DEFINE":
+                i += 1
+                if tokenList[i].type == "ID":
+                    i += 1
+                    if tokenList[i].type == "O_PARAM":
+                        i += 1
+                        args()
+                        if tokenList[i].type == "C_PARAM":
                             i += 1
-                            return True
+                            if tokenList[i].type == "O_BRACE":
+                                i += 1
+                                body()
+                                if tokenList[i].type == "C_BRACE":
+                                    i += 1
+                                    return True
+                                
+        syntaxError(
+            "Syntax Error: Missing 'DEFINE' keyword in function definition")
+
+    def args():
+        global i, tokenList
+        if tokenList[i].type == "DT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                n_args()
+        syntaxError(
+            "Syntax Error: Missing data type in function arguments")
+
+    def n_args():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            if tokenList[i].type == "DT":
+                i += 1
+                if tokenList[i].type == "ID":
+                    i += 1
+                    n_args()
+            syntaxError(
+                "Syntax Error: Missing data type in function arguments")
         else:
-            static, concCond, check = statConc()
-            if (check):
-                check = functionSig(accessMod, static, concCond)
-                if (check):
+            return True # Epsilon case
+
+    # Assignment Statement
+
+    def assign_st():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            A2()
+            if tokenList[i].type == "ASSIGN":
+                i += 1
+                exp()
+        syntaxError(
+            "Syntax Error: Missing variable name in assignment statement")
+
+    def A2():
+        global i, tokenList
+        if tokenList[i].type == "DOT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                A2()
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                A2()
+        elif tokenList[i].type == "O_PARAM":
+            i += 1
+            PL()
+            if tokenList[i].type == "C_PARAM":
+                i += 1
+                F2()
+        else:
+            return True # Epsilon case
+
+    def F2():
+        global i, tokenList
+        if tokenList[i].type == "DOT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                A2()
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                A2()
+        else:
+            return True # Epsilon case
+
+    def PL():
+        exp()
+        param2()
+
+    def param2():
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
+            i += 1
+            exp()
+            param2()
+        else:
+            return True # Epsilon case
+
+    # Increment-Decrement Statement
+
+    def inc_dec_st():
+        global i, tokenList
+        if tokenList[i].type in ["ID", "STR", "CHAR", "FLT", "INT"]:
+            i += 1
+            exp()
+            inc_dec_op()
+        else:
+            syntaxError("Syntax Error: Missing identifier or value for increment/decrement statement")
+
+    def inc_dec_op():
+        global i, tokenList
+        if tokenList[i].type == "INC_DEC":
+            i += 1
+        elif tokenList[i].value in ["++", "--"]:
+            i += 1
+        else:
+            syntaxError("Syntax Error: Invalid increment/decrement operator")
+
+    # ? ************************* Try Catch *************************
+    def try_catch():
+        global i , tokenList
+        if tokenList[i].type == "ATTEMPT":
+            i += 1
+            if tokenList[i].type == "O_BRACE":
+                i += 1
+                body()
+                if tokenList[i].type == "C_BRACE":
+                    i += 1
+                    catch_block()
+                    if tokenList[i].type == "FINALLY":
+                        i += 1
+                        if tokenList[i].type == "O_BRACE":                            
+                            i += 1
+                            body()
+                            if tokenList[i].type == "C_BRACE":
+                                i += 1
+                                return True
+        syntaxError(
+            "Syntax Error: Missing 'ATTEMPT' keyword in 'try-catch' statement")
+
+    def catch_block():
+        global i, tokenList
+        if tokenList[i].type == "CATCH":
+            i += 1
+            if tokenList[i].type == "O_PARAM":
+                i += 1
+                if tokenList[i].type == "ERROR":
+                    i+=1
+                    if tokenList[i].type == "C_PARAM":
+                        i += 1
+                        if tokenList[i].type == "O_BRACE":                            
+                            i += 1
+                            body()
+                            if tokenList[i].type == "C_BRACE":                                
+                                i += 1
+                                return True
+            syntaxError("Syntax Error: Missing '(' in 'catch' block")
+        else:
+            return True # Epsilon case
+
+    # ? ************************* Expression *************************
+    # <exp>-> <a> <exp'>
+    def exp():
+        a()
+        exp_prime()
+
+    def exp_prime():
+        global i, tokenList
+        if tokenList[i].type == "OR":
+            i += 1
+            a()
+            exp_prime()
+
+    def a():
+        r()
+        a_prime()
+
+    def a_prime():
+        global i, tokenList
+        if tokenList[i].type == "AND":
+            i += 1
+            r()
+            a_prime()
+
+    def r():
+        e()
+        r_prime()
+
+    def r_prime():
+        global i, tokenList
+        if tokenList[i].type == "RELATION":
+            i += 1
+            e()
+            r_prime()
+
+    def e():
+        t()
+        e_prime()
+
+    def e_prime():
+        global i, tokenList
+        if tokenList[i].type == "PM":
+            i += 1
+            t()
+            e_prime()
+
+    def t():
+        f()
+        t_prime()
+
+    def t_prime():
+        global i, tokenList
+        if tokenList[i].type == "M_D_M":
+            i += 1
+            f()
+            t_prime()
+
+    def f():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
+            i += 1
+        elif tokenList[i].type == "NOT":
+            i += 1
+            f()
+        elif tokenList[i].type == "CALLING":
+            i += 1
+            func_call()
+        syntaxError("Syntax Error: Expected ID or literal")
+
+    def f_init():
+        global i, tokenList
+        if tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                f_init()
+        elif tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type == "INC_DEC":
+            print('incrementing')
+            i += 1
+        else:
+            return True
+    def f_init_tail():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            f_init()
+        elif tokenList[i].type == "O_BRACK":
+            i += 1
+            exp()
+            if tokenList[i].type == "C_BRACK":
+                i += 1
+                f_init()
+        else:
+            return True
+
+    def const():
+        global i, tokenList
+        if (tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "CHAR" or tokenList[i].type == "BOOL"):
+            i += 1
+            return True
+        return syntaxError("Syntax error: constant missing")
+
+    # Function calling
+    def func_call():
+        global i, tokenList
+        if tokenList[i].type == "ID":
+            i += 1
+            if tokenList[i].type == "O_PARAM":
+                i += 1
+                param()
+                if tokenList[i].type == "C_PARAM":
+                    i += 1
                     return True
-        return syntaxError()
+        syntaxError(
+            "Syntax Error: Missing function name in function call")
 
-    def statConc():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        static = ""
-        concCond = ""
-        if (tokenList[i].type == "STATIC"):
-            static = tokenList[i].type
-            i += 1
-            return static, concCond, True
-        elif (tokenList[i].type == "CONCRETE"):
-            concCond = tokenList[i].type
-            i += 1
-            return static, concCond, True
-        elif (tokenList[i].type == "DT" or tokenList[i].type == "ID" or tokenList[i].type == "DICT" or tokenList[i].type == "VOID"):
-            return static, concCond, True
-        return static, concCond, syntaxError()
+    def param():
+        exp()
+        param2()
 
-    def presPriv():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        accessMod = ""
-        if (tokenList[i].type == "PRIVATE" or tokenList[i].type == "PRESERVED"):
-            accessMod = tokenList[i].type
+    def param2():   
+        global i, tokenList
+        if tokenList[i].type == "SEPARATOR":
             i += 1
-            return accessMod, True
-        return accessMod, syntaxError()
-
-    def cCst_(accessMod):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        static = ""
-        concCond = ""
-        if (tokenList[i].type == "STATIC"):
-            static = tokenList[i].type
-            i += 1
-            return cCst__(accessMod, static)
-        elif (tokenList[i].type == "CONCRETE"):
-            concCond = tokenList[i].type
-            i += 1
-            check = classVars(accessMod, static, concCond)
-            if (check):
-                return cCst()
-        return syntaxError()
-
-    def cCst__(accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT"):
-            ofType = tokenList[i].value
-            i += 1
-            return cStDT(ofType, accessMod, static)
-        elif (tokenList[i].type == "ID"):
-            ofType = tokenList[i].value
-            check = lookupMainTable(ofType)
-            if (check == False):
-                unDeclaredError(ofType, "Can't create object.")
-                return False
-            if (check.type != "CLASS"):
-                randomError("Can't create object of 'symbol'")
-                return False
-            if (check.typeMod == "CONDENSED"):
-                randomError("Can't create object of 'condensed class'")
-                return False
-            i += 1
-            return cStID(ofType, accessMod, static)
-        elif (tokenList[i].type == "DICT"):
-            i += 1
-            check = multiArr()
-            if (check):
-                return cCst()
-        elif (tokenList[i].type == "VOID"):
-            ofType = tokenList[i].value
-            i += 1
-            if (tokenList[i].type == "MAIN_METHOD"):
-                name = tokenList[i].value
-                i += 1
-                return gcMain(name, ofType, accessMod, static, "")
-        return syntaxError()
-
-    def cStDT(ofType, accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            check = declare_(name, ofType, accessMod, static, "")
-            if (check):
-                return cCst()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return cStDT_()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            name = tokenList[i].value
-            i += 1
-            return gcMain(name, ofType, accessMod, static, "")
-        return syntaxError()
-
-    # Array Implementation
-    def cStDT_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            check = gArr_()
-            if (check):
-                return cCst()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            i += 1
-            return gcMain()
-        return syntaxError()
-
-    def cStID(ofType, accessMod, static):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            check = object_(name, ofType, accessMod, static, "")
-            if (check):
-                return cCst()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return cStID_()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            name = tokenList[i].value
-            i += 1
-            return gcMain(name, ofType, accessMod, static, "")
-        elif (tokenList[i].type == "O_PARAN"):
-            currentScope = createScope()
-            currentFunction = currentScope
-            i += 1
-            param, check = argumentList()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (currentClass != ofType):
-                    randomError(
-                        "constructor and class name should be same.")
-                    return False
-                if (static != "" and param != ""):
-                    randomError(
-                        "class could not have parameterized static constructor")
-                    return False
-                check = insertAttribute(
-                    ofType, param, ofType, accessMod, static, "", currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        ofType, "Constructor of class " + currentClass)
-                    return False
-                check = bodyMST()
-                if (check):
-                    return cCst()
-        return syntaxError()
-
-    # Array Implementation
-    def cStID_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            check = oArr_()
-            if (check):
-                return cCst()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            i += 1
-            return gcMain()
-        return syntaxError()
-
-    def gcMain(name, ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "O_PARAN"):
-            currentScope = createScope()
-            currentFunction = currentScope
-            i += 1
-            paramList, check = argumentList()
-            if (check and tokenList[i].type == "C_PARAN"):
-                check = insertAttribute(
-                    name, paramList, ofType, accessMod, static, concCond, currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        name, "Method in '" + currentClass + "'")
-                    return False
-                i += 1
-                check = bodyMST()
-                if (check):
-                    return gcCstNM()
-        return syntaxError()
-
-    def gcCstNM():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "FUNCTION"):
-            i += 1
-            accessMod, check = access()
-            if (check):
-                check = types(accessMod)
-                if (check):
-                    return gcCstNM()
-        elif (tokenList[i].type == "C_BRACE"):
-            currentScope = destroyScope()
-            i += 1
-            check = lookupMainTable(currentClass)
-            check = checkConstructor(check)
-            if (check):
-                return mainDone()
+            exp()
+            param2()
         else:
-            accessMod, check = presPriv()
-            if (check):
-                static, concCond, check = statConc()
-                if (check):
-                    check = classVars(accessMod, static, concCond)
-                    if (check):
-                        return gcCstNM()
-            else:
-                accessMod, check = public_()
-                if (check):
-                    check = gcConsVar(accessMod)
-                    if (check):
-                        return gcCstNM()
-        return syntaxError()
-
-    def gcConsVar(accessMod):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "CONCRETE"):
-            concCond = tokenList[i].type
-            return classVars(accessMod, "", concCond)
-        else:
-            static, check = static_()
-            if (check):
-                return consVar(accessMod, static)
-        return syntaxError()
-
-    def gCst():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "C_BRACE"):
-            currentScope = destroyScope()
-            i += 1
-            check = lookupMainTable(currentClass)
-            check = checkConstructor(check)
-            if (check):
-                return structure()
-        elif (tokenList[i].type == "FUNCTION"):
-            i += 1
-            accessMod, check = access()
-            if (check):
-                check = types(accessMod)
-                if (check):
-                    return gCst()
-        else:
-            accessMod, check = presPriv()
-            if (check):
-                static, concCond, check = statConc()
-                if (check):
-                    check = classVars(accessMod, static, concCond)
-                    if (check):
-                        return gCst()
-            else:
-                accessMod, check = public_()
-                if (check):
-                    return gCst_(accessMod)
-        return syntaxError()
-
-    def gCst_(accessMod):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        static = ""
-        concCond = ""
-        if (tokenList[i].type == "CONCRETE"):
-            concCond = ""
-            i += 1
-            check = classVars(accessMod, static, concCond)
-            if (check):
-                return gCst()
-        else:
-            static, check = static_()
-            if (check):
-                return gCst__(accessMod, static, concCond)
-        return syntaxError()
-
-    def static_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        static = ""
-        if (tokenList[i].type == "STATIC"):
-            static = tokenList[i].type
-            i += 1
-            return static, True
-        elif (tokenList[i].type == "DT" or tokenList[i].type == "ID" or tokenList[i].type == "DICT" or tokenList[i].type == "VOID"):
-            return static, True
-        return static, syntaxError()
-
-    def gCst__(accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "DT"):
-            ofType = tokenList[i].value
-            i += 1
-            return gStDT(ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "ID"):
-            ofType = tokenList[i].value
-            check = lookupMainTable(ofType)
-            if (check == False):
-                unDeclaredError(ofType, "Can't create object.")
-                return False
-            if (check.type != "CLASS"):
-                randomError("Can't create object of 'symbol'")
-                return False
-            if (check.typeMod == "CONDENSED"):
-                randomError("Can't create object of 'condensed class'")
-                return False
-            i += 1
-            return gStID(ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "DICT"):
-            i += 1
-            check = multiArr()
-            if (check):
-                return gCst()
-        elif (tokenList[i].type == "VOID"):
-            ofType = tokenList[i].type
-            i += 1
-            if (tokenList[i].type == "MAIN_METHOD"):
-                name = tokenList[i].value
-                i += 1
-                return gcMain(name, ofType, accessMod, static, concCond)
-        return syntaxError()
-
-    def gStDT(ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            check = declare_(name, ofType, accessMod, static, concCond)
-            if (check):
-                return gCst()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return gStDT_()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            name = tokenList[i].value
-            i += 1
-            return gcMain(name, ofType, accessMod, static, concCond)
-        return syntaxError()
-
-    # Array Implementation
-    def gStDT_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            check = gArr_()
-            if (check):
-                return gCst()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            i += 1
-            return gcMain()
-        return syntaxError()
-
-    def gStID(ofType, accessMod, static, concCond):
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            name = tokenList[i].value
-            i += 1
-            check = object_(name, ofType, accessMod, static, concCond)
-            if (check):
-                return gCst()
-        elif (tokenList[i].type == "O_BRACK"):
-            i += 1
-            if (tokenList[i].type == "C_BRACK"):
-                i += 1
-                return gStID_()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            name = tokenList[i].value
-            i += 1
-            return gcMain(name, ofType, accessMod, static, concCond)
-        elif (tokenList[i].type == "O_PARAN"):
-            currentScope = createScope()
-            currentFunction = currentScope
-            i += 1
-            param, check = argumentList()
-            if (check and tokenList[i].type == "C_PARAN"):
-                i += 1
-                if (currentClass != ofType):
-                    randomError(
-                        "constructor and class name should be same.")
-                    return False
-                if (static != "" and param != ""):
-                    randomError(
-                        "class could not have parameterized static constructor")
-                    return False
-                if (concCond != ""):
-                    randomError(
-                        "constructor can't be modified by concrete or condensed")
-                    return False
-                check = insertAttribute(
-                    ofType, param, ofType, accessMod, static, concCond, currentClass)
-                if (check == False):
-                    reDeclarationError(
-                        ofType, "Constructor of class "+currentClass)
-                    return False
-                check = bodyMST()
-                if (check):
-                    return gCst()
-        return syntaxError()
-
-    # Array Implementation
-    def gStID_():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        if (tokenList[i].type == "ID"):
-            i += 1
-            check = oArr_()
-            if (check):
-                return gCst()
-        elif (tokenList[i].type == "MAIN_METHOD"):
-            i += 1
-            return gcMain()
-        return syntaxError()
-
-    def z():
-        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-        return syntaxError()
-
-
+            return True
+        
 except LookupError:
     print("Tree Incomplete... Input Completely Parsed")

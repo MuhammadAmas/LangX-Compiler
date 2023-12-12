@@ -19,11 +19,11 @@ breakedWords = breakWords(sourceCode)
 
 classifiedToken = classifyToken(breakedWords)
 # print(classifiedToken)
-# syntaxAnalyzer(classifiedToken)
-semanticAnalyzer(classifiedToken)
+
+# syntaxReport = syntaxAnalyzer(classifiedToken)
+
+semanticsReport = semanticAnalyzer(classifiedToken)
 
 
-
-
-# with open(output_file_path, "w") as outputfile:
-#     outputfile.write(generateOutput(classifiedToken))
+with open(output_file_path, "w") as outputfile:
+    outputfile.write(semanticsReport)

@@ -17,13 +17,14 @@ def semanticAnalyzer(tokens):
     i = 0
     tokenList = tokens
     result = structure()
-    print(report())
-    return result
+    analysis_report = report()
+    print(analysis_report)
+    return analysis_report
 
 
 def report():
-    # global currentClass, currentFunction, currentScope, scopeStack_, errorAt, mainTable_, functionTable_, error
-    return
+    global currentClass, currentFunction, currentScope, scopeStack_, errorAt, mainTable_, functionTable_, error
+    # return
     report = error + "\n"
     report += "\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\t~~~~~\n"
     report += "\t\t\t\t\t\t  R\t  E\t  P\t  O\t  R\t  T\n"
@@ -33,14 +34,14 @@ def report():
     report += "Scope @ End:\t\t" + str(currentScope) + "\n\n"
     report += "###########################################################################\n"
     report += "Main Table:\n\n"
-    # for i in mainTable_:
-    #     report += "Name:\t\t'" + i.name + "'\nType:\t\t'" + i.type + \
-    #         "'\nTypeMod:\t'" + i.typeMod + "'\nParent:\t\t'" + i.parent + "'\n"
-    #     report += "Attributes:\n"
-    #     for j in i.attrTable:
-    #         report += str(vars(j))
-    #         report += "\n"
-    #     report += "-------------------------\n"
+    for i in mainTable_:
+        report += "Name:\t\t'" + i.name + "'\nType:\t\t'" + i.type + \
+            "'\nTypeMod:\t'" + i.typeMod + "'\nParent:\t\t'" + i.parent + "'\n"
+        report += "Attributes:\n"
+        for j in i.attrTable:
+            report += str(vars(j))
+            report += "\n"
+        report += "-------------------------\n"
     report += "\n"
     report += "###########################################################################\n"
     report += "Function Table:\n\n"
@@ -56,9 +57,12 @@ def syntaxError(message):
 
 
 def reDeclarationError(name, detail):
+    print(name, detail)
     global i, error
-    error += "\n\t***  Re-Declaration Error  ***\n\tID:\t\t" + name + "\n\tAs:\t\t" + \
-        detail, "\n\tLine #:\t       ", str(tokenList[i].line) + "\n"
+    error += "\n\t***  Re-Declaration Error  ***\n\tID:\t\t" + name + \
+        "\n\tAs:\t\t" + detail + "\n\tLine #:\t       " + \
+        str(tokenList[i].line) + "\n"
+
     return
 
 
@@ -123,7 +127,7 @@ try:
 
     def class_def():
         global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_
-      
+
         if tokenList[i].type == "SEALED":
             typeMod = tokenList[i].type
             i += 1
@@ -133,9 +137,10 @@ try:
                 if tokenList[i].type == "ID":
                     name = tokenList[i].value
                     i += 1
-                    check = insertMainTable(name, entryOf, typeMod, [])
+                    check = insertMainTable(
+                        name, entryOf, typeMod, 'ownParent')
                     if (check == False):
-                        reDeclarationError(name, "Static Class")
+                        reDeclarationError(name, "Class")
                         return False
                         currentClass = name
                     if tokenList[i].type == "O_BRACE":
@@ -143,30 +148,56 @@ try:
                         i += 1
                         class_body()
                         if tokenList[i].type == "C_BRACE":
+                            currentScope = destroyScope()
                             i += 1
                             return True
-                        
+
     # ? ************************* Inheritance *************************
         elif tokenList[i].type == "GROUP":
+            entryOf = tokenList[i].type
             i += 1
             if tokenList[i].type == "ID":
+                name = tokenList[i].value
                 i += 1
-                inheritance()
+                parent, check = inheritance()
+                if (check):
+                    check = insertMainTable(name, entryOf, 'public', parent)
+                    if (check == False):
+                        reDeclarationError(name, "Class")
+                        return False
+                        currentClass = name
                 if tokenList[i].type == "O_BRACE":
+                    currentScope = createScope()
                     i += 1
                     class_body()
                     if tokenList[i].type == "C_BRACE":
+                        currentScope = destroyScope()
                         i += 1
                         return True
         return False
 
     def inheritance():
         global i, tokenList
+        parClass = " "
         if tokenList[i].type == "EXTENDS":
             i += 1
             if tokenList[i].type == "ID":
+                id = tokenList[i].value
+                check = lookupMainTable(id)
+                if (check == False):
+                    unDeclaredError(id, "Parent Class")
+                    return parClass, False
+                if (check.type != "GROUP"):
+                    randomError(
+                        "Class should be inherited from a class.")
+                    return parClass, False
+                if (check.typeMod == "SEALED"):
+                    randomError("class can't be inherited from " +
+                                check.typeMod.lower() + " class.")
+                    return parClass, False
+                parClass = parClass + id
                 i += 1
-                return True
+                return parClass, True
         elif tokenList[i].type == "IMPLEMENTS":
             i += 1
             if tokenList[i].type == "ID":
@@ -174,7 +205,7 @@ try:
                 if inheritance_2():
                     return True
         else:
-            return True # Epsilon case
+            return parClass, True  # Epsilon case
 
     def inheritance_2():
         global i, tokenList
@@ -184,17 +215,19 @@ try:
                 i += 1
                 inheritance_2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def class_body():
         global i, tokenList
-        if tokenList[i].type in ["ID", "#", "CONSTRUCTOR","METHOD"]:
+        if tokenList[i].type == 'DT':
+            dec()
+        if tokenList[i].type in ["ID", "#", "CONSTRUCTOR", "METHOD"]:
             if C_ST():
                 if C_MT():
                     return True
 
     # ? ************************* CLASS SINGLE STATEMENT *************************
-    
+
     def C_ST():
         global i, tokenList
         if tokenList[i].type == "ID":
@@ -202,13 +235,6 @@ try:
             init()
             if tokenList[i].type == "TERMINATOR":
                 i += 1
-        elif tokenList[i].type == "#":
-            i += 1
-            if tokenList[i].type == "ID":
-                i += 1
-                init()
-                if tokenList[i].type == "TERMINATOR":
-                    i += 1
         elif tokenList[i].type == "METHOD":
             if method():
                 return True
@@ -228,45 +254,45 @@ try:
                 i += 1
                 MST()
                 if tokenList[i].type == "C_BRACE":
-                    i+=1
+                    i += 1
                     return True
 
     def method_header():
         global tokenList, i
-        if (tokenList[i].type == "METHOD" ):
-            i+=1
+        if (tokenList[i].type == "METHOD"):
+            i += 1
             if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
-                i+=1
+                i += 1
                 if tokenList[i].type == "ID":
-                    i+=1
+                    i += 1
                     if tokenList[i].type == "O_PARAM":
-                        i+=1
+                        i += 1
                         params()
                         if tokenList[i].type == "C_PARAM":
                             return True
         return False
-           
+
     def params():
         global i, tokenList
         if tokenList[i].type == "DT":
-            i+=1
+            i += 1
             if tokenList[i].type == "ID":
                 i += 1
                 params2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def params2():
         global i, tokenList
         if tokenList[i].type == "SEPARATOR":
             i += 1
             if tokenList[i].type == "DT":
-                i+=1
+                i += 1
                 if tokenList[i].type == "ID":
                     i += 1
                     params2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # ? ************************* CLASS CONSTRUCTOR *************************
 
@@ -293,9 +319,9 @@ try:
         if tokenList[i].type in ["ID", "#", "CONSTRUCTOR", "METHOD"]:
             if C_ST():
                 if C_MT():
-                    return True 
+                    return True
         else:
-            return False 
+            return False
 
     # ? ************************* Interfaces *************************
 
@@ -321,7 +347,7 @@ try:
                 i += 1
                 interface_body_2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def interface_body_2():
         global i, tokenList
@@ -332,14 +358,21 @@ try:
                 i += 1
                 interface_body_2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
     # ? ************************* Decleration *************************
+
     def dec():
         global i, tokenList
         if tokenList[i].type == "DT":
+            ofType = tokenList[i].value
             i += 1
             if tokenList[i].type == "ID":
+                name = tokenList[i].value
                 i += 1
+                check = insertFunctionTable(name, ofType, currentScope)
+                if (check == False):
+                    reDeclarationError(name, f"Inside Scope No # {currentScope}")
+                    return False
                 init()
                 list_()
         else:
@@ -433,7 +466,7 @@ try:
                 if tokenList[i].type == "ASSIGN":
                     i += 1
                     if tokenList[i].type in ['ID', 'INT', 'FLT', 'STR', 'CHAR']:
-                        i+=1
+                        i += 1
                         return True
         else:
             syntaxError("Syntax Error")
@@ -441,10 +474,10 @@ try:
     def cond():
         global i, tokenList
 
-        if tokenList[i].type in ["ID", "INT", "FLT", "STR","CHAR","NOT"]:
+        if tokenList[i].type in ["ID", "INT", "FLT", "STR", "CHAR", "NOT"]:
             exp()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def update():
         global i, tokenList
@@ -454,7 +487,7 @@ try:
                 i += 1
                 return True
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # ? ************************* Assignment *************************
     # <assign_st> -> ID <A2> <assignop> <exp>
@@ -528,7 +561,7 @@ try:
             i += 1
             return True
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # <body> → <MST>
 
@@ -551,7 +584,7 @@ try:
             return False
         elif (tokenList[i].type == "DT" and tokenList[i+1].type != "DEFINE"):
             dec()
-            SST()            
+            SST()
         elif tokenList[i].type == "ARRAY":
             array()
             SST()
@@ -582,13 +615,13 @@ try:
             SST()
         # elif tokenList[i].type in ['METHOD', "CONSTRUCTOR"]:
         #     class_body()
-        #     SST()    
+        #     SST()
 
     # ? ************************* Array *************************
     def array():
         global i, tokenList
         if tokenList[i].type == "ARRAY":
-            i+=1
+            i += 1
             if tokenList[i].type == "DT":
                 i += 1
                 if tokenList[i].type == "ID":
@@ -607,7 +640,8 @@ try:
                     i += 1
                     dims()
             else:
-                syntaxError("Syntax Error: Missing integer constant for array size")
+                syntaxError(
+                    "Syntax Error: Missing integer constant for array size")
         else:
             return True  # Epsilon case
 
@@ -647,12 +681,12 @@ try:
             value_list()
             if tokenList[i].type == "C_BRACK":
                 i += 1
-        
+
         elif tokenList[i].type == "O_BRACK":
-            i+=1
+            i += 1
             value_list()
             if tokenList[i].type == "C_BRACK":
-                i+=1
+                i += 1
                 if tokenList[i].type == "SEPARATOR":
                     nested_array()
         else:
@@ -667,27 +701,35 @@ try:
             value()
             if tokenList[i].type == "SEPARATOR":
                 i += 1
-                value_list()               
+                value_list()
         else:
             syntaxError("Syntax Error: Missing value in the value list")
 
     def value():
         exp()
-    
+
     # ? ************************* Dict *************************
 
     def dict_():
-        global i , tokenList
+        global i, tokenList, currentScope
         if tokenList[i].type == "DICT":
+            ofType= tokenList[i].value
             i += 1
             if tokenList[i].type == "ID":
+                name= tokenList[i].value
+                check = insertFunctionTable(name, ofType, currentScope)
+                if (check == False):
+                    reDeclarationError(name, f"Inside Scope No # {currentScope}")
+                    return False
                 i += 1
                 if tokenList[i].type == "ASSIGN":
                     i += 1
                     if tokenList[i].type == "O_BRACE":
+                        currentScope =createScope()
                         i += 1
                         key_value_list()
                         if tokenList[i].type == "C_BRACE":
+                            currentScope = destroyScope()
                             i += 1
                             return True
         syntaxError(
@@ -703,7 +745,7 @@ try:
             i += 1
             key_value_list()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def key_value():
         global i, tokenList
@@ -716,7 +758,7 @@ try:
     def key():
         global i, tokenList
         if tokenList[i].type == "STR" or tokenList[i].type == "CHAR":
-            i+=1
+            i += 1
             return True
         else:
             exp()
@@ -724,7 +766,7 @@ try:
     def value():
         global i, tokenList
         if tokenList[i].type == "STR" or tokenList[i].type == "CHAR":
-            i+=1
+            i += 1
             return True
         exp()
 
@@ -744,7 +786,7 @@ try:
                         body()
                         if tokenList[i].type == "C_BRACE":
                             i += 1
-                            
+
                         if_else_tail()
         syntaxError("Syntax Error: Missing 'WHEN' in 'when' statement")
 
@@ -780,7 +822,7 @@ try:
             else:
                 syntaxError("Syntax Error: Missing ':' after 'otherwise'")
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # ? ************************* Function Call *************************
     def func_call():
@@ -808,34 +850,43 @@ try:
             exp()
             param2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # Function Definition
 
     def func_def():
-        global i, tokenList
+        global i, tokenList, currentClass, currentFunction, currentScope, scopeStack_, errorAt
         if (tokenList[i].type == "DT" or tokenList[i].type == "VOID"):
-            i+=1
+            ofType = tokenList[i].value
+            i += 1
             if tokenList[i].type == "DEFINE":
                 i += 1
                 if tokenList[i].type == "ID":
+                    name = tokenList[i].value
                     i += 1
+                    check = insertFunctionTable(name, ofType, currentScope)
+                    if (check == False):
+                        reDeclarationError(name, 'function')
+                        return False
                     if tokenList[i].type == "O_PARAM":
+                        currentScope = createScope()
                         i += 1
-                        args()
+                        args(ofType, name, currentScope)
                         if tokenList[i].type == "C_PARAM":
                             i += 1
+
                             if tokenList[i].type == "O_BRACE":
                                 i += 1
                                 body()
                                 if tokenList[i].type == "C_BRACE":
+                                    currentScope = destroyScope()
                                     i += 1
                                     return True
-                                
+
         syntaxError(
             "Syntax Error: Missing 'DEFINE' keyword in function definition")
 
-    def args():
+    def args(ofType, name, currentScope):
         global i, tokenList
         if tokenList[i].type == "DT":
             i += 1
@@ -857,7 +908,7 @@ try:
             syntaxError(
                 "Syntax Error: Missing data type in function arguments")
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # Assignment Statement
 
@@ -892,7 +943,7 @@ try:
                 i += 1
                 F2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def F2():
         global i, tokenList
@@ -908,7 +959,7 @@ try:
                 i += 1
                 A2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     def PL():
         exp()
@@ -921,7 +972,7 @@ try:
             exp()
             param2()
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # Increment-Decrement Statement
 
@@ -932,7 +983,8 @@ try:
             exp()
             inc_dec_op()
         else:
-            syntaxError("Syntax Error: Missing identifier or value for increment/decrement statement")
+            syntaxError(
+                "Syntax Error: Missing identifier or value for increment/decrement statement")
 
     def inc_dec_op():
         global i, tokenList
@@ -945,7 +997,7 @@ try:
 
     # ? ************************* Try Catch *************************
     def try_catch():
-        global i , tokenList
+        global i, tokenList
         if tokenList[i].type == "ATTEMPT":
             i += 1
             if tokenList[i].type == "O_BRACE":
@@ -956,7 +1008,7 @@ try:
                     catch_block()
                     if tokenList[i].type == "FINALLY":
                         i += 1
-                        if tokenList[i].type == "O_BRACE":                            
+                        if tokenList[i].type == "O_BRACE":
                             i += 1
                             body()
                             if tokenList[i].type == "C_BRACE":
@@ -972,18 +1024,18 @@ try:
             if tokenList[i].type == "O_PARAM":
                 i += 1
                 if tokenList[i].type == "ERROR":
-                    i+=1
+                    i += 1
                     if tokenList[i].type == "C_PARAM":
                         i += 1
-                        if tokenList[i].type == "O_BRACE":                            
+                        if tokenList[i].type == "O_BRACE":
                             i += 1
                             body()
-                            if tokenList[i].type == "C_BRACE":                                
+                            if tokenList[i].type == "C_BRACE":
                                 i += 1
                                 return True
             syntaxError("Syntax Error: Missing '(' in 'catch' block")
         else:
-            return True # Epsilon case
+            return True  # Epsilon case
 
     # ? ************************* Expression *************************
     # <exp>-> <a> <exp'>
@@ -1047,7 +1099,7 @@ try:
 
     def e_prime():
         global i, tokenList
-        if tokenList[i].type == "PM" or tokenList[i+1].type =="ASSIGN":
+        if tokenList[i].type == "PM" or tokenList[i+1].type == "ASSIGN":
             i += 1
             if t():
                 return True
@@ -1078,7 +1130,7 @@ try:
             i += 1
             f_init()
         elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
-            i+=1
+            i += 1
             return True
         elif tokenList[i].type == "NOT":
             i += 1
@@ -1104,6 +1156,7 @@ try:
             i += 1
         else:
             return True
+
     def f_init_tail():
         global i, tokenList
         if tokenList[i].type == "ID":
@@ -1136,7 +1189,7 @@ try:
         exp()
         param2()
 
-    def param2():   
+    def param2():
         global i, tokenList
         if tokenList[i].type == "SEPARATOR":
             i += 1
@@ -1144,6 +1197,6 @@ try:
             param2()
         else:
             return True
-    
+
 except LookupError:
     print("Tree Incomplete... Input Completely Parsed")

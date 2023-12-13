@@ -101,7 +101,6 @@ try:
     def class_body():
         global i, tokenList
         if tokenList[i].type in ["ID", "#", "CONSTRUCTOR","METHOD"]:
-            print('kuchhhhh', tokenList[i].value)
             if C_ST():
                 if C_MT():
                     return True
@@ -123,7 +122,6 @@ try:
                 if tokenList[i].type == "TERMINATOR":
                     i += 1
         elif tokenList[i].type == "METHOD":
-            print('reading methof in class stat')
             if method():
                 return True
         elif tokenList[i].type == "CONSTRUCTOR":
@@ -135,14 +133,12 @@ try:
     # ? ************************* CLASS METHOD *************************
 
     def method():
-        print('entering methods')
         global i, tokenList
         if method_header():
             i += 1
             if tokenList[i].type == "O_BRACE":
                 i += 1
                 MST()
-                print('jo bhi kara dia', tokenList[i].value)
                 if tokenList[i].type == "C_BRACE":
                     i+=1
                     return True
@@ -207,9 +203,7 @@ try:
     def C_MT():
         global i, tokenList
         if tokenList[i].type in ["ID", "#", "CONSTRUCTOR", "METHOD"]:
-            print(tokenList[i].type, '-------------------')
             if C_ST():
-                print('aa jaaa')
                 if C_MT():
                     return True 
         else:
@@ -267,39 +261,19 @@ try:
         global i, tokenList
         if tokenList[i].type == "ASSIGN":
             i += 1
-            init_1()
-        elif tokenList[i].type == "TERMINATOR":
-            return True
+            if exp():
+                if list_():
+                    return True
         else:
             syntaxError("Syntax Error")
-
-    def init_1():
-        global i, tokenList
-        if tokenList[i].type == "ID":
-            print('entering ISD')
-            i += 1
-            init_2()
-        elif tokenList[i].type in ["STR", "CHAR", "FLT", "INT"]:
-            print('entering number')
-            i += 1
-            return True
-        else:
-            
-            exp()
-
-    def init_2():
-        global i, tokenList
-        if tokenList[i].type == "SEPARATOR":
-            i += 1
-            if tokenList[i].type == "ID":
-                i += 1
-                init_2()
+        return True
 
     def list_():
         global i, tokenList
         if tokenList[i].type == "TERMINATOR":
             i += 1
-            list_1()
+
+            dec()
         elif tokenList[i].type == "SEPARATOR":
             i += 1
             if tokenList[i].type == "ID":
@@ -309,17 +283,16 @@ try:
         elif tokenList[i].type in ['M_D_M', 'PM', 'RELATION']:
             exp()
         else:
-            print('giving errr')
             syntaxError("Syntax Error")
 
-    def list_1():
-        global i, tokenList
-        if tokenList[i].type == "ID":
-            i += 1
-            init()
-            list_()
-        else:
-            return True
+    # def list_1():
+    #     global i, tokenList
+    #     if tokenList[i].type == "ID":
+    #         i += 1
+    #         init()
+    #         list_()
+    #     else:
+    #         return True
 
     # ? ************************* iterate *************************
     # <for_loop> → iterate (<init> ; <cond> ; <update>) { <body> }
@@ -331,24 +304,18 @@ try:
             if tokenList[i].type == "O_PARAM":
                 i += 1
                 for_loop_init()
-                print("condition in first param", tokenList[i].type)
                 if tokenList[i].type == "TERMINATOR":
-                    print('terninatiing in for lopp')
                     i += 1
-                    inc_dec_st()
-                    print("condition")
-
-                    # if tokenList[i].type == "TERMINATOR":
-                    #     i += 1
-                    #     update()
+                    cond()
+                    if tokenList[i].type == "TERMINATOR":
+                        i += 1
+                        update()
                     if tokenList[i].type == "C_PARAM":
                         i += 1
                         if tokenList[i].type == "O_BRACE":
                             i += 1
                             body()
-                            print("before closing brace")
                             if tokenList[i].type == "C_BRACE":
-                                print("after closing brace")
                                 i += 1
                                 return True
                             else:
@@ -371,16 +338,20 @@ try:
 
     def for_loop_init():
         global i, tokenList
-        if tokenList[i].type in ["DT", "ID"]:
-            dec()
-        elif tokenList[i].type == "ID":
-            assign_st()
+        if tokenList[i].type == "DT":
+            i += 1
+            if tokenList[i].type == "ID":
+                i += 1
+                if tokenList[i].type == "ASSIGN":
+                    i += 1
+                    if tokenList[i].type in ['ID', 'INT', 'FLT', 'STR', 'CHAR']:
+                        i+=1
+                        return True
         else:
-            return True # Epsilon case
+            syntaxError("Syntax Error")
 
     def cond():
         global i, tokenList
-        print("cond in condition", tokenList[i].value, tokenList[i+1].value)
 
         if tokenList[i].type in ["ID", "INT", "FLT", "STR","CHAR","NOT"]:
             exp()
@@ -389,11 +360,11 @@ try:
 
     def update():
         global i, tokenList
-        if tokenList[i].type == "INC_DEC":
+        if tokenList[i].type == "ID":
             i += 1
-            inc_dec_st()
-        elif tokenList[i].type == "ID":
-            assign_st()
+            if tokenList[i].type == "INC_DEC":
+                i += 1
+                return True
         else:
             return True # Epsilon case
 
@@ -488,11 +459,9 @@ try:
     # <SST> → <dec> | <when_otherwise> | <iterate_st> | <assign_st> | <inc_dec_st> | <return_st> | <fn_call> | <try_catch> | <dict> | <array>
 
     def SST():
-        print('entering sst')
         if tokenList[i].type == 'EOF':
             return False
         elif (tokenList[i].type == "DT" and tokenList[i+1].type != "DEFINE"):
-            print('entering dt')
             dec()
             SST()            
         elif tokenList[i].type == "ARRAY":
@@ -931,59 +900,89 @@ try:
     # ? ************************* Expression *************************
     # <exp>-> <a> <exp'>
     def exp():
-        a()
-        exp_prime()
+        if a():
+            return True
+        if exp_prime():
+            return True
+        return False
 
     def exp_prime():
         global i, tokenList
         if tokenList[i].type == "OR":
             i += 1
-            a()
-            exp_prime()
+            if a():
+                return True
+            if exp_prime():
+                return True
+        return False
 
     def a():
-        r()
-        a_prime()
+        if r():
+            return True
+        if a_prime():
+            return True
+        return False
 
     def a_prime():
         global i, tokenList
         if tokenList[i].type == "AND":
             i += 1
-            r()
-            a_prime()
+            if r():
+                return True
+            if a_prime():
+                return True
+        return False
 
     def r():
-        e()
-        r_prime()
+        if e():
+            return True
+        if r_prime():
+            return True
+        return False
 
     def r_prime():
         global i, tokenList
         if tokenList[i].type == "RELATION":
             i += 1
-            e()
-            r_prime()
+            if e():
+                return True
+            if r_prime():
+                return True
+        return False
 
     def e():
-        t()
-        e_prime()
+        if t():
+            return True
+        if e_prime():
+            return True
+        return False
 
     def e_prime():
         global i, tokenList
-        if tokenList[i].type == "PM":
+        if tokenList[i].type == "PM" or tokenList[i+1].type =="ASSIGN":
             i += 1
-            t()
-            e_prime()
+            if t():
+                return True
+            if e_prime():
+                return True
+        return False
 
     def t():
-        f()
-        t_prime()
+        if f():
+            return True
+        if t_prime():
+            return True
+        return False
 
     def t_prime():
         global i, tokenList
         if tokenList[i].type == "M_D_M":
             i += 1
-            f()
-            t_prime()
+            if f():
+                return True
+            if t_prime():
+                return True
+        return False
 
     def f():
         global i, tokenList
@@ -991,10 +990,12 @@ try:
             i += 1
             f_init()
         elif tokenList[i].type in ["INT", "FLT", "STR", "CHAR"]:
-            i += 1
+            i+=1
+            return True
         elif tokenList[i].type == "NOT":
             i += 1
-            f()
+            if f():
+                return True
         elif tokenList[i].type == "CALLING":
             i += 1
             func_call()
@@ -1012,7 +1013,6 @@ try:
             i += 1
             f_init()
         elif tokenList[i].type == "INC_DEC":
-            print('incrementing')
             i += 1
         else:
             return True
@@ -1029,13 +1029,6 @@ try:
                 f_init()
         else:
             return True
-
-    def const():
-        global i, tokenList
-        if (tokenList[i].type == "INT" or tokenList[i].type == "FLT" or tokenList[i].type == "STR" or tokenList[i].type == "CHAR" or tokenList[i].type == "BOOL"):
-            i += 1
-            return True
-        return syntaxError("Syntax error: constant missing")
 
     # Function calling
     def func_call():

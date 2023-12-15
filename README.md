@@ -96,7 +96,7 @@ OUTPUT_FILE_PATH = ''
 
 Install the `dotenv` package.
 ```
-$ pip install python
+$ pip install dotenv
 ```
 
 ## Collaborators

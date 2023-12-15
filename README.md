@@ -1,5 +1,5 @@
-# Compiler-Construction
-
+<h1>Compiler-Construction</h1>
+<h3>Python and C++ inspire LangX</h3>
 [Language Specification](https://docs.google.com/document/d/1qQZOctEwxQMSBbtUT8uUzJpPKKBRQgEXpMGCxYjlFF4/edit?usp=sharing)
 [Context Free Grammar](https://docs.google.com/spreadsheets/d/1CHO4TnnpyqiE1SvSEOLbCyuYNwl-7q4cV17S9-eoPxk/edit#gid=0)
 [Attributed Grammar](https://docs.google.com/spreadsheets/d/1jK84-zBqsj8zFTshYl60Ty65o8W4KlT0pzxPr3-4Q4w/edit#gid=0)
